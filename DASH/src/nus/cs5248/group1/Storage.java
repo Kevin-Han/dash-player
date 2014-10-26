@@ -3,6 +3,7 @@ package nus.cs5248.group1;
 import java.io.File;
 import java.io.FilenameFilter;
 
+import android.annotation.SuppressLint;
 import android.os.Environment;
 import android.util.Log;
 
@@ -45,7 +46,6 @@ public class Storage {
 				}
 			}
 		}
-		
 		return mediaStorageDir;
 	}
 	
@@ -57,6 +57,7 @@ public class Storage {
 	
 	public static String[] getMP4FileList(final File folder) {
 		FilenameFilter filter = new FilenameFilter() {
+			@SuppressLint("DefaultLocale")
 			public boolean accept(File dir, String name) {
 				return name.toLowerCase().endsWith(".mp4");
 			}
@@ -69,8 +70,7 @@ public class Storage {
 		return new File(getSegmentFolder(videoFile, true), filename);
 	}
 	
-	public static boolean deleteFile(final File videoFile) {
-		String filename = videoFile.getName();
-		return videoFile.delete();
+	public static boolean deleteFile(String strFile) {
+		return new File(strFile).delete();
 	}
 }

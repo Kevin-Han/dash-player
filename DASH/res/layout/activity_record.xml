@@ -28,15 +28,12 @@
         </FrameLayout>
     </RelativeLayout>
 
-    <Button
-        android:id="@+id/Button1"
-        android:layout_width="match_parent"
+    <ImageButton
+        android:id="@+id/imageButton1"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:background="@drawable/record"
+        android:layout_gravity="bottom|center"
         android:onClick="startButtonClicked"
-        android:text="Record" >
-
-    </Button>
+        android:src="@android:drawable/ic_menu_camera" />
 
 </FrameLayout>

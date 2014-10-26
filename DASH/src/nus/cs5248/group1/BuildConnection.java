@@ -1,15 +1,8 @@
 package nus.cs5248.group1;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,35 +11,31 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.entity.FileEntity;
-import org.json.JSONObject;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.cookie.CookieOrigin;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
+import android.content.Intent;
 import android.net.ParseException;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
 
 public enum BuildConnection
@@ -68,23 +57,24 @@ public enum BuildConnection
 	public static final String BASE_URL = "http://pilatus.d1.comp.nus.edu.sg/~a0092701/home/";
 }
 
-class CreateVideoTaskParam
+class CreateVideoUploadTaskParam 
 {
-	static CreateVideoTaskParam create(String videoTitle)
+	static CreateVideoUploadTaskParam create(String video)
 	{
-		CreateVideoTaskParam param = new CreateVideoTaskParam();
-		param.videoTitle = videoTitle;
+		CreateVideoUploadTaskParam param = new CreateVideoUploadTaskParam();
+		param.video = video;
 		return param;
 	}
 
-	String videoTitle;
-	boolean deleteFile;
+	String video;
 }
 
-class CreateVideoTask extends AsyncTask<CreateVideoTaskParam, Integer, Integer>
+class CreateVideoUploadTask extends AsyncTask<CreateVideoUploadTaskParam, Integer, Integer>
 {
+	int result;
+	
 	@Override
-	protected Integer doInBackground(CreateVideoTaskParam... param)
+	protected Integer doInBackground(CreateVideoUploadTaskParam... param)
 	{
 		try
 		{
@@ -98,8 +88,6 @@ class CreateVideoTask extends AsyncTask<CreateVideoTaskParam, Integer, Integer>
 
 			CookieStore cookieStore = new BasicCookieStore();
 			client.setCookieStore(cookieStore);
-
-			//CookieSpec cookieSpec = new BrowserCompatSpec();
 
 			CookieSpecFactory csf = new CookieSpecFactory()
 			{
@@ -126,7 +114,7 @@ class CreateVideoTask extends AsyncTask<CreateVideoTaskParam, Integer, Integer>
 			if (responseEntity != null)
 			{
 				this.responseAsText = EntityUtils.toString(responseEntity);
-				this.cookies = client.getCookieStore().getCookies();
+				CreateVideoUploadTask.cookies = client.getCookieStore().getCookies();
 				if (cookies != null)
 				{
 					int size = cookies.size();
@@ -141,44 +129,47 @@ class CreateVideoTask extends AsyncTask<CreateVideoTaskParam, Integer, Integer>
 
 			MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
 
-			File file = new File("/storage/sdcard/Movies/CS5248/cs5248_20141021_062329.mp4");
+			File file = new File(Storage.getMediaFolder(true), param[0].video);
 			entity.addPart("async-upload", new FileBody(file));
 
 			httppost.setEntity(entity);
 			HttpResponse response = client.execute(httppost);
 
-     		HttpEntity resEntity = response.getEntity();
+			HttpEntity resEntity = response.getEntity();
 
 			if (resEntity != null)
 			{
 				this.responseAsText = EntityUtils.toString(resEntity);
+				result = Result.OK;
 			}
 		}
 		catch (UnsupportedEncodingException e)
 		{
 			Log.e(BuildConnection.TAG, "Unsupported encoding exception: " + e.getMessage());
+			result = Result.FAIL;
 		}
 		catch (ClientProtocolException e)
 		{
 			Log.e(BuildConnection.TAG, "Client protocol exception: " + e.getMessage());
+			result = Result.FAIL;
 		}
 		catch (IOException e)
 		{
 			Log.e(BuildConnection.TAG, "IO exception: " + e.getMessage());
+			result = Result.FAIL;
 		}
 		catch (ParseException e)
 		{
 			Log.e(BuildConnection.TAG, "JSON parse exception: " + e.getMessage());
-			// } catch (JSONException e) {
-			// Log.e(FN, "JSON exception: " + e.getMessage());
+			result = Result.FAIL;
 		}
 		catch (Exception e)
 		{
 			Log.e(BuildConnection.TAG, "Unexpected exception: " + e.getMessage());
 			e.printStackTrace();
+			result = Result.FAIL;
 		}
-
-		return 0;
+		return result;
 	}
 
 	protected String responseAsText;
