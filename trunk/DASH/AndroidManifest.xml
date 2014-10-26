@@ -30,7 +30,7 @@
     </activity>
     <activity android:name=".Record"
               android:label="@string/title_activity_record"></activity>
-    <activity android:name=".Upload"
-              android:label="@string/title_activity_upload"></activity>
+    <activity android:name=".VideoPreview"
+              android:label="@string/title_activity_preview"></activity>
   </application>
 </manifest>

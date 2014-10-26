@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -22,6 +23,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class Record extends Activity {
@@ -36,7 +38,7 @@ public class Record extends Activity {
 	
 	boolean recording;
 	private TextView statusView;
-	private Button startButton;
+	private ImageButton startButton;
 	private Handler	recordingTimerHandler;
 	private long	recordingLength;
 
@@ -64,7 +66,7 @@ public class Record extends Activity {
 		FrameLayout frameLayout = (FrameLayout) findViewById(R.id.videoView1);
 		frameLayout.addView(surfaceView);
 
-		startButton = (Button)findViewById(R.id.Button1);
+		startButton = (ImageButton)findViewById(R.id.imageButton1);
 		this.recordingTimerHandler = new Handler();
 	}
 
@@ -76,9 +78,8 @@ public class Record extends Activity {
 			stopRecording();
 		}else{
 			statusView.setText("OnPause");
-			releaseMediaRecorder(); // if you are using MediaRecorder, release it
+			releaseMediaRecorder();
 			 // release the camera immediately on pause event
-			startButton.setText("Record");
 		}
 		releaseCamera();
 	}
@@ -107,17 +108,12 @@ public class Record extends Activity {
 			startRecordingTimer();
 			recording = true;
 			statusView.setText("Starting recording...");
-			startButton.setText("Stop");
+			startButton.setImageResource(R.drawable.record);
 		} else {
 			stopRecording();
 		}
 	}
-	
-	public void PreViewButtonClicked(View view){
-		 //Intent i = new Intent(VideoRecorderActivity.this, VideoPreview.class);
-         //startActivity(i);
-	}
-	
+		
 	private void stopRecording(){
 		if (recording) {
 			mediaRecorder.stop(); // stop the recording
@@ -128,7 +124,6 @@ public class Record extends Activity {
 			recording = false;
 
 			statusView.setText("Recording Stopped");
-			startButton.setText("Record");
 			
 			Intent intent = new Intent(Record.this, MainActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -191,6 +186,7 @@ public class Record extends Activity {
 		}
 	}
 
+	@SuppressLint("SimpleDateFormat")
 	private static File getOutputMediaFile(int type) {
 		// To be safe, you should check that the SDCard is mounted
 		// using Environment.getExternalStorageState() before doing this.

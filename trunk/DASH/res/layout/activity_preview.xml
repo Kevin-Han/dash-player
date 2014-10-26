@@ -6,12 +6,13 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="nus.cs5248.group1.Upload" >
+    tools:context="nus.cs5248.group1.VideoPreview" >
 
     <TextView
+        android:id="@+id/itemPreview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+	 />
     
     <LinearLayout
         android:layout_width="291dp"
@@ -22,15 +23,16 @@
             android:id="@+id/btUpload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:onClick="clickUpload"
+            android:layout_gravity="bottom|end"
+            android:onClick="upload"
             android:text="Upload" />
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/btDelete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
+            android:layout_gravity="bottom|end"
+            android:onClick="delete"
             android:text="Delete" />
     </LinearLayout>
 </RelativeLayout>
