@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="nus.cs5248.group1.MainActivity" >
+
+    <item
+        android:id="@+id/menu_record" 
+        android:title="Record Video" 
+        android:icon="@drawable/menu_record"/>
+    <item 
+        android:id="@+id/menu_serverURL" 
+        android:title="Server URL"
+        android:icon="@drawable/menu_server"/>
+    <item 
+        android:id="@+id/menu_quit" 
+        android:title="Quit"
+        android:icon="@drawable/menu_quit"/>
+    <item 
+        android:id="@+id/menu_about" 
+        android:title="About us"
+        android:icon="@drawable/menu_about"/>
+
+</menu>
