@@ -73,14 +73,6 @@ public class MainActivity extends Activity {
 			Intent callServer = new Intent(this, ListServerVideoActivity.class);
 			startActivity(callServer);
 			return true;
-		case R.id.menu_list_local_video:
-			if(this.getCurrentFocus() != findViewById(R.id.listView1))
-			{
-				Intent intent = new Intent(MainActivity.this, MainActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent);
-			}
-			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
