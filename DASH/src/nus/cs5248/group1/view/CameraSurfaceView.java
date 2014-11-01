@@ -1,4 +1,4 @@
-package nus.cs5248.group1;
+package nus.cs5248.group1.view;
 
 import android.content.Context;
 import android.hardware.Camera;

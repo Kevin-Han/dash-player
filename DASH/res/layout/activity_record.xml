@@ -8,7 +8,7 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        tools:context="nus.cs5248.group1.Record" >
+        tools:context="nus.cs5248.group1.controller.RecordActivity" >
     
     <TextView
         android:id="@+id/textViewStatus"

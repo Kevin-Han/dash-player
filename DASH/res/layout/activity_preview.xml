@@ -2,37 +2,50 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="top"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="nus.cs5248.group1.VideoPreview" >
-
-    <TextView
-        android:id="@+id/itemPreview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-	 />
+    tools:context="nus.cs5248.group1.controller.VideoPreviewActivity" >
     
     <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="291dp"
+        android:layout_alignLeft="@+id/linearLayout1"
+        android:layout_alignRight="@+id/linearLayout1"
+        android:layout_gravity="top"
+        android:orientation="vertical" >
+
+     <TextView
+        android:id="@+id/itemPreview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+      
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
         android:layout_width="291dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom" >
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true" >
 
         <Button
             android:id="@+id/btUpload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
+            android:layout_gravity="bottom"
             android:onClick="upload"
-            android:text="Upload" />
+            android:text="@string/btnUpload" />
 
         <Button
             android:id="@+id/btDelete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
+            android:layout_gravity="bottom"
             android:onClick="delete"
-            android:text="Delete" />
+            android:text="@string/btnDelete" />
     </LinearLayout>
+
 </RelativeLayout>
