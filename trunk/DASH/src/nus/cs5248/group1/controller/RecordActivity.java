@@ -1,10 +1,14 @@
-package nus.cs5248.group1;
+package nus.cs5248.group1.controller;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import nus.cs5248.group1.R;
+import nus.cs5248.group1.model.Storage;
+import nus.cs5248.group1.view.CameraSurfaceView;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -26,7 +30,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class Record extends Activity {
+public class RecordActivity extends Activity {
 	private static final int MEDIA_TYPE_VIDEO = 2;
 	
 	private static final String TAG = "RecorderActivity";
@@ -125,7 +129,7 @@ public class Record extends Activity {
 
 			statusView.setText("Recording Stopped");
 			
-			Intent intent = new Intent(Record.this, MainActivity.class);
+			Intent intent = new Intent(RecordActivity.this, MainActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
 		}

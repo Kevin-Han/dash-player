@@ -1,4 +1,4 @@
-package nus.cs5248.group1;
+package nus.cs5248.group1.model;
 
 import java.io.File;
 import java.io.FilenameFilter;

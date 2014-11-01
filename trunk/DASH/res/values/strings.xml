@@ -3,8 +3,10 @@
   <string name="app_name">DASH</string>
   <string name="title_activity_record">Record</string>
   <string name="title_activity_preview">Preview</string>
-  <string name="btnVideo">Record</string>
+  <string name="title_activity_server">List Server Videos</string>
   <string name="btnUpload">Upload</string>
   <string name="btnDelete">Delete</string>
-  <string name="cannot">Cannot</string>
+  <string name="btnVideo">Record Video</string>
+  <string name="btnListLocalVideo">List local videos</string>
+  <string name="btnListServerVideo">List server videos</string>
 </resources>

@@ -1,10 +1,13 @@
-package nus.cs5248.group1;
+package nus.cs5248.group1.controller;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+
+import nus.cs5248.group1.R;
+import nus.cs5248.group1.model.Storage;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -63,8 +66,20 @@ public class MainActivity extends Activity {
 		// Handle item selection
 		switch(item.getItemId()) {
 		case R.id.menu_record:
-	        Intent call = new Intent(this,Record.class); 
+	        Intent call = new Intent(this,RecordActivity.class); 
 	        startActivity(call); 
+			return true;
+		case R.id.menu_list_videos_from_server:
+			Intent callServer = new Intent(this, ListServerVideoActivity.class);
+			startActivity(callServer);
+			return true;
+		case R.id.menu_list_local_video:
+			if(this.getCurrentFocus() != findViewById(R.id.listView1))
+			{
+				Intent intent = new Intent(MainActivity.this, MainActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+			}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -100,7 +115,7 @@ public class MainActivity extends Activity {
 		            public void onItemClick(AdapterView<?> adapterView, View view, int position,
 		                    long id) {
 		            	
-					Intent call = new Intent(getActivity(), VideoPreview.class);
+					Intent call = new Intent(getActivity(), VideoPreviewActivity.class);
 					String item = (String)listView.getItemAtPosition(position);
 					call.putExtra("item",item);
 					startActivity(call);
