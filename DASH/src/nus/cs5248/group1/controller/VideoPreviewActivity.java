@@ -85,10 +85,23 @@ public class VideoPreviewActivity extends Activity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		return super.onOptionsItemSelected(item);
+		switch(item.getItemId()) {
+		case R.id.menu_record:
+	        Intent call = new Intent(this,RecordActivity.class); 
+	        startActivity(call); 
+			return true;
+		case R.id.menu_list_videos_from_server:
+			Intent callServer = new Intent(this, ListServerVideoActivity.class);
+			startActivity(callServer);
+			return true;
+		case R.id.menu_list_local_video:
+			Intent intent = new Intent(this, MainActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
 
 	public void upload(View v)

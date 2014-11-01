@@ -64,6 +64,7 @@ public class Server
 
 	public static final String LOGIN = "wp-login.php";
 	public static final String CREATE_VIDEO = "index.php";
+	public static final String LIST_VIDEO = "wp-content/list.php";
 	public static final String LOGIN_USER = "log";
 	public static final String LOGIN_PASS = "pwd";
 	public static final String VIDEO_TITLE = "async-upload";
