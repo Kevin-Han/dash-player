@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DashPlayer</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="zero_kbps">TODO</string>
+    <string name="buffer_label">TODO</string>
+    <string name="zero">TODO</string>
+    <string name="ready">Ready</string>
+    <string name="title_video_list">TODO</string>
+    <string name="title_video_detail">TODO</string>
+    <string name="refresh">TODO</string>
+    <string name="play">TODO</string>
+    <string name="press_to_update">Press to update</string>
+    <string name="default_text">Default Text</string>
+
+</resources>
