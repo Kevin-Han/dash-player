@@ -7,11 +7,11 @@
     <string name="buffer_label">TODO</string>
     <string name="zero">TODO</string>
     <string name="ready">Ready</string>
-    <string name="title_video_list">TODO</string>
-    <string name="title_video_detail">TODO</string>
+    <string name="title_video_list">DashPlayer</string>
+    <string name="title_video_detail">DashPlayer</string>
     <string name="refresh">TODO</string>
     <string name="play">TODO</string>
-    <string name="press_to_update">Press to update</string>
+    <string name="press_to_update">Press to play video</string>
     <string name="default_text">Default Text</string>
 
 </resources>

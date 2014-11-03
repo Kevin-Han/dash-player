@@ -10,8 +10,9 @@ public class VideoSegment {
 	
 	public VideoSegment() { 
 		//There are 3 different qualities to store
-		segmentURL = new SparseArray<String>(3);
 		cacheFilePath = "";
+		segmentURL = new SparseArray<String>(3);
+
 	}
 	
 	public void setSegmentUrlForQuality (int quality, String url) {

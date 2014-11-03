@@ -3,6 +3,7 @@ package sg.edu.nus.comp.cs5248.dashplayer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.widget.RelativeLayout;
 
 public class VideoDetailFragment extends Fragment {
 	protected static final String TAG = "VideoDetailFragment";
+	public static final String ARG_ITEM_ID = "item_id";
 	private RelativeLayout	mediaContainer;
     private MediaPlayer 	currentMediaPlayer;
     private SurfaceHolder	currentHolder;
@@ -43,10 +45,10 @@ public class VideoDetailFragment extends Fragment {
 	
 	//Try out:
 	//@Override
-	//public void streamletDownloadDidFinish(VideoSegmentInfo segmentInfo) {
+	//public void streamletDownloadDidFinish(VideoSegment segmentInfo) {
 	//	Log.d(TAG, "Quality=" + segmentInfo.getCacheQuality() + "p, Cache: " + segmentInfo.getCacheFilePath());
 	//	queueForPlayback(segmentInfo);
-//	}
+	//}
 	//The download need to call back to here so that it can queueForPlayback
 	
 	
@@ -65,17 +67,28 @@ public class VideoDetailFragment extends Fragment {
 				try {
 					nextMediaPlayer = new MediaPlayer();
 			        nextMediaPlayer.setOnCompletionListener(new OnCompletionListener() {
-						
 						@Override
-						public void onCompletion(MediaPlayer mp) {
-							mp.release();
+						public void onCompletion(MediaPlayer mediaPlayer) {
+							mediaPlayer.release();
 							startNextPlayer();
 						}
 					});
-			        nextMediaPlayer.setDataSource(segment.getCacheFilePath());
+			        
+			        MediaMetadataRetriever metaType = new MediaMetadataRetriever();
+			        
+			        String st = segment.getCacheFilePath();
+			        nextMediaPlayer.setDataSource(st);
 			        nextMediaPlayer.setSurface(nextHolder.getSurface());
 			        nextMediaPlayer.prepare();
 			        
+					//nextMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+					//    @Override
+					//    public void onPrepared(MediaPlayer mediaPlayer) {
+					//    	mediaPlayer.start();
+					//    	mediaPlayer.pause();
+					//    }
+					//});
+					
 			        int videoWidth = nextMediaPlayer.getVideoWidth();
 					int videoHeight = nextMediaPlayer.getVideoHeight();
 					
@@ -89,6 +102,7 @@ public class VideoDetailFragment extends Fragment {
 					nextMediaPlayer.pause();
 					
 					if (currentMediaPlayer == null) {
+						currentMediaPlayer.release();
 						startNextPlayer();
 					}
 				} catch (Exception e) {
@@ -154,8 +168,6 @@ public class VideoDetailFragment extends Fragment {
 			this.scheduleNext();
 		}
 	}
-	
-	
 		
 /*	
   @Override

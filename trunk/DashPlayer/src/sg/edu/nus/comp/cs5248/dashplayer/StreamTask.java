@@ -17,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.util.Log;
 
 class StreamingProgressInfo {
@@ -27,26 +28,38 @@ class StreamingProgressInfo {
 	VideoSegment lastDownloadedSegment;
 }
 
-public class StreamTask extends AsyncTask <String, StreamingProgressInfo ,Boolean> {
+class StreamVideoTaskParam {
+	public StreamVideoTaskParam(String title, Context context, StreamTask.OnSegmentDownloaded callback) {
+		this.title = title;
+		this.context = context;
+		this.callback = callback;
+	}
+	
+	String title;
+	Context context;
+	StreamTask.OnSegmentDownloaded callback;
+}
+
+public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgressInfo ,Boolean> {
 	//Networking cannot be done at UI Thread, use AsyncTask
 	//AsyncTask has some subclasses:
 	//1.doInBackground (Params...)
 	//2.getPlaylist()
 	public static final String TAG = "StreamTask";
-	
-	//In this class, onSegmentDownloaded will be interface
-	private OnSegmentDownloaded streamListener;
+	private StreamTask.OnSegmentDownloaded callback;
+	private String title;
+	private Context context;
 	
 	Context myContext;
 	
-	//public static final String CACHE_FOLDER	= new File(Environment.getExternalStorageDirectory().getPath(), "dash_cache/").getPath();
+	public static final String CACHE_FOLDER	= new File(Environment.getExternalStorageDirectory().getPath(), "dash_cache/").getPath();
 	//Constructor
 	public StreamTask () {
 		super();
 	}
 	
 	//The interface to be implemented at class that needs this callback:
-	public interface OnSegmentDownloaded {
+	public static interface OnSegmentDownloaded {
 		public void onVideoPlaySelected (VideoSegment segment);
 	}
 	
@@ -54,15 +67,19 @@ public class StreamTask extends AsyncTask <String, StreamingProgressInfo ,Boolea
 		this.myContext = context;
 	}
 	
-	protected Boolean doInBackground (String... someString) {
+	protected Boolean doInBackground (StreamVideoTaskParam...params) {
 		Playlist playlist = this.getPlaylist();
+		this.callback = params[0].callback;
+		this.title = params[0].title;
+		this.context = params[0].context;
+		
 		if (playlist == null) {
 			Log.e(TAG, "Fail to get playlist=");
 		}
 		
 		for (VideoSegment segment : playlist) {
 			//For now set quality to 1.
-			int temp_quality = 240;
+			int temp_quality = 320;
 			String url = segment.getSegmentUrlForQuality(temp_quality);
 			Log.v(TAG, "Next URL: " + url);
 			
@@ -97,7 +114,7 @@ public class StreamTask extends AsyncTask <String, StreamingProgressInfo ,Boolea
 	}
 	
 	protected void onProgressUpdate(StreamingProgressInfo... info) {
-        	streamListener.onVideoPlaySelected(info[0].lastDownloadedSegment);
+		callback.onVideoPlaySelected(info[0].lastDownloadedSegment);
     }
 	
 	//method getPlaylist
@@ -107,7 +124,7 @@ public class StreamTask extends AsyncTask <String, StreamingProgressInfo ,Boolea
 		try {
 			Log.v(TAG, "getPlaylist is called.");
 			HttpClient client = new DefaultHttpClient();
-			URI getURL = new URI ("http://www-itec.uni-klu.ac.at/ftp/datasets/mmsys12/BigBuckBunny/MPDs/BigBuckBunny_10s_isoffmain_DIS_23009_1_v_2_1c2_2011_08_30.mpd");
+			URI getURL = new URI ("http://pilatus.d1.comp.nus.edu.sg/~a0092701/home/wp-content/segmentVideo/small.mpd");
 			HttpResponse getResponse = client.execute(new HttpGet(getURL));
 			StatusLine statusLine = getResponse.getStatusLine();
 			HttpEntity responseEntity = getResponse.getEntity();
@@ -140,7 +157,7 @@ public class StreamTask extends AsyncTask <String, StreamingProgressInfo ,Boolea
 	//Method downloadFile will take in url, return the location of cachedfile.
 	private String downloadFile (String url){
 		//The local variable:
-		File cachefile = null;
+		String cachefile = "";
 		FileOutputStream fos;
 		
 		try {
@@ -165,27 +182,27 @@ public class StreamTask extends AsyncTask <String, StreamingProgressInfo ,Boolea
 			Log.e (TAG, "Unexpected exception: ",e);
 			return null;
 		} 
-		return cachefile.getPath();
+		return cachefile;
 	}
 	
 	public static String extractFileName(String url) {
-		return Uri.parse(url).getLastPathSegment();
-		//return url.substring(url.lastIndexOf('/') + 1);
+		//return Uri.parse(url).getLastPathSegment();
+		return url.substring(url.lastIndexOf('/') + 1);
 	}
 	
-	public File getCacheFile(Context context, String url) {
-		File file = null;
+	public String getCacheFile(Context context, String url) {
+		/*File file = null;
 		try {
 			String fileName = extractFileName(url);
 			file = File.createTempFile(fileName, null, context.getCacheDir());
 		}
 		catch (IOException e) {
-	        // Error while creating file
 			e.printStackTrace();
 			Log.e (TAG, "Error when creating cache file: ",e);
 	    }
-		return file;
-		//return new File(DashStreamer.CACHE_FOLDER, fileName).getPath();
+		return file;*/
+		String fileName = extractFileName(url);
+		return new File(StreamTask.CACHE_FOLDER, fileName).getPath();
 	}
 
 	
