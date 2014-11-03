@@ -67,7 +67,7 @@ public class Playlist implements Iterable<VideoSegment> {
 			segment = videoSegments.get(index);
 		}
 		
-	segment.setSegmentUrlForQuality(quality, sourceURL);
+		segment.setSegmentUrlForQuality(quality, sourceURL);
 	
 	}
 	

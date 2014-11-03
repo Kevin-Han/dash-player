@@ -2,13 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical" 	
+    android:background="?android:attr/activatedBackgroundIndicator" >
 
     <Button
         android:id="@+id/button1"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/press_to_update"
-    />
+        android:text="@string/press_to_update" />
+
+    <ListView
+        android:id="@+id/listMPDView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" 
+        android:choiceMode="singleChoice" 
+        android:listSelector="@android:color/darker_gray">
+    </ListView>
 
 </LinearLayout> 
