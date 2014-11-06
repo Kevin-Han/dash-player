@@ -242,20 +242,20 @@ public class VideoPreviewActivity extends Activity
 				for (String x : fileList) {
 					file = new File(Storage.getMediaFolder(true), x);
 					entity.addPart("async-upload", new FileBody(file));
+					totalsize = entity.getContentLength();
+
+					httppost.setEntity(entity);
+					HttpResponse response = client.execute(httppost,httpContext);
+
+					HttpEntity resEntity = response.getEntity();
+
+					if (resEntity != null)
+					{
+						this.responseAsText = EntityUtils.toString(resEntity);
+						result = Result.OK;
+					}
 				}
 				
-				totalsize = entity.getContentLength();
-
-				httppost.setEntity(entity);
-				HttpResponse response = client.execute(httppost,httpContext);
-
-				HttpEntity resEntity = response.getEntity();
-
-				if (resEntity != null)
-				{
-					this.responseAsText = EntityUtils.toString(resEntity);
-					result = Result.OK;
-				}
 			}
 			catch (UnsupportedEncodingException e)
 			{
@@ -350,7 +350,7 @@ public class VideoPreviewActivity extends Activity
 				
 				double seconds = duration / 1000;	//convert milliseconds to seconds
 				int numOfSegments = (int) seconds / 3;
-				int remainder = (int) seconds % 3;
+				int remainder = (int) (duration % 3000);
 				numOfSegments = (remainder != 0) ? numOfSegments + 1 : numOfSegments;
 				
 				segmentList = new String[numOfSegments];
@@ -363,7 +363,7 @@ public class VideoPreviewActivity extends Activity
 					for(int i=0; i<segmentList.length; i++) {
 						index = i + 1;
 						if(i == segmentList.length-1 && remainder != 0) {	// last segment and less than 3 seconds
-							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, startIndex+remainder, index);
+							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, startIndex+(double)(remainder*0.001), index);
 							break;	// exit for loop
 						}
 						

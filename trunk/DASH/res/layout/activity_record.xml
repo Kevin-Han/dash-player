@@ -10,14 +10,7 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context="nus.cs5248.group1.controller.RecordActivity" >
     
-    <TextView
-        android:id="@+id/textViewStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:text="textViewStatus" />
-
-    <RelativeLayout
+   <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
@@ -27,7 +20,15 @@
             android:layout_height="match_parent" >
         </FrameLayout>
     </RelativeLayout>
-
+    
+    <TextView
+        android:id="@+id/textViewStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:textColor="#fff"
+        android:text="" />
+    	
     <ImageButton
         android:id="@+id/imageButton1"
         android:layout_width="wrap_content"
