@@ -36,8 +36,8 @@ public final class R {
         public static final int menu_list_local_video=0x7f08000b;
         public static final int menu_list_videos_from_server=0x7f08000a;
         public static final int menu_record=0x7f080009;
-        public static final int textViewStatus=0x7f080005;
-        public static final int videoView1=0x7f080006;
+        public static final int textViewStatus=0x7f080006;
+        public static final int videoView1=0x7f080005;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

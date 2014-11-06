@@ -152,10 +152,14 @@ public class RecordActivity extends Activity {
 
 		myCamera.unlock();
 		mediaRecorder.setCamera(myCamera);
+		
+		//CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+		//profile.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
 
 		mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 		mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 		mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+		//mediaRecorder.setProfile(profile);
 		mediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
 		mediaRecorder.setPreviewDisplay(surfaceView.getHolder().getSurface());
 
