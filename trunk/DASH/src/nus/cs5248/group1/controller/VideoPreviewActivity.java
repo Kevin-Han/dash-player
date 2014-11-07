@@ -231,31 +231,28 @@ public class VideoPreviewActivity extends Activity
 
 				//File file = new File(Storage.getMediaFolder(true), param[0].video);
 				
-				
-				
-				//File file = new File(Storage.getMediaFolder(true), fileList[0]);
-				//entity.addPart("async-upload", new FileBody(file));
-				
 				String fileName = param[0].video;
 				String[] fileList = segmentService(fileName);
 				File file;
+				
 				for (String x : fileList) {
-					file = new File(Storage.getMediaFolder(true), x);
-					entity.addPart("async-upload", new FileBody(file));
-					totalsize = entity.getContentLength();
+					if (x != null) {
+						file = new File(Storage.getMediaFolder(true), x);
+						entity.addPart("async-upload", new FileBody(file));
+						totalsize = entity.getContentLength();
 
-					httppost.setEntity(entity);
-					HttpResponse response = client.execute(httppost,httpContext);
+						httppost.setEntity(entity);
+						HttpResponse response = client.execute(httppost,httpContext);
 
-					HttpEntity resEntity = response.getEntity();
+						HttpEntity resEntity = response.getEntity();
 
-					if (resEntity != null)
-					{
-						this.responseAsText = EntityUtils.toString(resEntity);
-						result = Result.OK;
+						if (resEntity != null)
+						{
+							this.responseAsText = EntityUtils.toString(resEntity);
+							result = Result.OK;
+						}
 					}
 				}
-				
 			}
 			catch (UnsupportedEncodingException e)
 			{
@@ -331,12 +328,18 @@ public class VideoPreviewActivity extends Activity
 		}
 		
 		private int getVideoFileDuration(String filename) {
-			
-			MediaPlayer mp = MediaPlayer.create(mContext, Uri.parse(filename));
-			int duration = mp.getDuration();
-			mp.release();
-			
-			return duration;
+			int duration = 0;
+			try {
+				MediaPlayer mp = MediaPlayer.create(mContext, Uri.parse(filename));
+				duration = mp.getDuration();
+				mp.reset();
+				mp.release();
+				mp = null;
+			}
+			catch (IllegalStateException e) {
+				 Log.e(TAG, e.getMessage().toString());
+			} 
+		    return duration;
 		}
 		
 		private String[] segmentService(String filename) {
@@ -344,31 +347,32 @@ public class VideoPreviewActivity extends Activity
 			String filePath = new File(Storage.getMediaFolder(true), item).getPath();
 			
 			int duration = getVideoFileDuration(filePath);
+			
 			String[] segmentList = null;
 			
 			if (duration > 0) {
 				
 				double seconds = duration / 1000;	//convert milliseconds to seconds
 				int numOfSegments = (int) seconds / 3;
-				int remainder = (int) (duration % 3000);
-				numOfSegments = (remainder != 0) ? numOfSegments + 1 : numOfSegments;
+				double remainTime = (duration % 3000) / 1000;
+				numOfSegments = (remainTime > 0) ? numOfSegments + 1 : numOfSegments;
 				
 				segmentList = new String[numOfSegments];
 				
 				double startIndex = 0.0000;
 				double endIndex = MAX_SEGMENT_LIMIT;
 				int index = 0;
-				
+				 Log.e(TAG, "remainder : " + remainTime);
 				try {
 					for(int i=0; i<segmentList.length; i++) {
 						index = i + 1;
-						if(i == segmentList.length-1 && remainder != 0) {	// last segment and less than 3 seconds
-							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, startIndex+(double)(remainder*0.001), index);
+						if(i == segmentList.length-1 && remainTime > 0) {	// last segment and less than 3 seconds
+							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true),  startIndex, startIndex + remainTime, index);
 							break;	// exit for loop
 						}
 						
 						segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, endIndex, index);
-						startIndex = endIndex;
+						startIndex = endIndex + 1.0000;
 						endIndex += MAX_SEGMENT_LIMIT;
 					}
 				}
