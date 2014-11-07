@@ -24,6 +24,7 @@ import java.util.List;
 		
 	    public static String startTrim(String src, File dst, double startMs, double endMs, int index) throws IOException {
 	    	
+	    	String segFileName = null;
 	    	Movie movie = MovieCreator.build(src);
 	    	
 	        // remove all tracks we will create new tracks from the old
@@ -51,6 +52,8 @@ import java.util.List;
 	                timeCorrected = true;
 	            }
 	        }
+	        
+	        if (startTime == endTime) return segFileName;
 	       
 	        for (Track track : tracks) {
 	            long currentSample = 0;
@@ -90,12 +93,13 @@ import java.util.List;
 	        }
 	     
 	        String srcFileName = src.substring(src.lastIndexOf("/")+1);
-	        String segFileName = (srcFileName.substring(0, srcFileName.length()-4)) +"_3s"+index+".mp4";
+	        segFileName = (srcFileName.substring(0, srcFileName.length()-4)) +"_3s"+index+".mp4";
 
 	        
 	        FileOutputStream fos = new FileOutputStream(dst.getAbsolutePath()
 	        								+ File.separator
 	        								+ segFileName);
+	        
 	        FileChannel fc = fos.getChannel();
 	        out.writeContainer(fc);
 	    
