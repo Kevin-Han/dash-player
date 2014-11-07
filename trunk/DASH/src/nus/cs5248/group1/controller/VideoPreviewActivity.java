@@ -1,10 +1,12 @@
 package nus.cs5248.group1.controller;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -35,7 +37,14 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.media.AudioTrack;
+import android.media.MediaCodec;
+import android.media.MediaCodec.BufferInfo;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.ParseException;
@@ -47,9 +56,13 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +74,10 @@ public class VideoPreviewActivity extends Activity
 {
 	private static final String TAG = "VideoPreviewActivity.class";
 	private static final double MAX_SEGMENT_LIMIT = 3.0000;
+	private static final long PLAY_TIMEOUT = 3000;
 	private TextView itemPreview;
+	private SurfaceView mediaPreview;
+	private SurfaceHolder holder;
 	private Bundle extras;
 	private String item;
 	private String currentSelectedFilePath;
@@ -70,19 +86,21 @@ public class VideoPreviewActivity extends Activity
 	AlertDialog.Builder dialog;
 	Executor executor;
 	ProgressDialog pd;
-		
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_preview);
-		
+
 		extras = getIntent().getExtras();
 		item = extras.getString("item");
-		itemPreview = (TextView) findViewById(R.id.itemPreview);	
+		itemPreview = (TextView) findViewById(R.id.itemPreview);
+		mediaPreview = (SurfaceView) findViewById(R.id.videoView1);
+		holder = mediaPreview.getHolder();
 		itemPreview.setText(item);
 		dialog = new AlertDialog.Builder(this);
-		 mContext = getApplicationContext();
+		mContext = getApplicationContext();
 	}
 
 	@Override
@@ -96,10 +114,11 @@ public class VideoPreviewActivity extends Activity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		switch(item.getItemId()) {
+		switch (item.getItemId())
+		{
 		case R.id.menu_record:
-	        Intent call = new Intent(this,RecordActivity.class); 
-	        startActivity(call); 
+			Intent call = new Intent(this, RecordActivity.class);
+			startActivity(call);
 			return true;
 		case R.id.menu_list_videos_from_server:
 			Intent callServer = new Intent(this, ListServerVideoActivity.class);
@@ -114,13 +133,11 @@ public class VideoPreviewActivity extends Activity
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
-	
 
 	public void upload(View v)
 	{
 		final CreateVideoUploadTask cv = new CreateVideoUploadTask();
-		
+
 		pd = new ProgressDialog(this);
 		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		pd.setMessage("Uploading ...");
@@ -130,7 +147,6 @@ public class VideoPreviewActivity extends Activity
 		pd.setMax(100);
 		pd.show();
 
-		
 		new Thread(new Runnable()
 		{
 			@Override
@@ -139,27 +155,20 @@ public class VideoPreviewActivity extends Activity
 				try
 				{
 					cv.execute(CreateVideoUploadTaskParam.create(item)).get();
-					//while(cv.<100)
-					//{
-					//	pd.setProgress(cv.progress);
-					//}
-					//if (progressStatus >= 100) {
-					//	pd.dismiss();
-					//}
 				}
 				catch (InterruptedException e)
 				{
 					// TODO Auto-generated catch block
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 				catch (ExecutionException e)
 				{
 					// TODO Auto-generated catch block
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		}).start();
-		
+
 	}
 
 	public void delete(View view)
@@ -168,7 +177,6 @@ public class VideoPreviewActivity extends Activity
 		{
 			public void onClick(DialogInterface dialog, int which)
 			{
-
 				File videoFile = new File(Storage.getMediaFolder(true), item);
 				currentSelectedFilePath = videoFile.getAbsolutePath();
 				Storage.deleteFile(currentSelectedFilePath);
@@ -184,6 +192,60 @@ public class VideoPreviewActivity extends Activity
 				// do nothing
 			}
 		}).setIcon(android.R.drawable.ic_dialog_alert).show();
+	}
+
+	public void play(View view)
+	{
+		File videoFile = new File(Storage.getMediaFolder(true), item);
+		currentSelectedFilePath = videoFile.getAbsolutePath();
+		MediaPlayer player = new MediaPlayer();
+
+		player.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+		{
+			@Override
+			public void onCompletion(MediaPlayer mediaPlayer)
+			{
+				//MediaController mediaController = new MediaController(mContext);
+				if(mediaPlayer != null)
+				{
+					mediaPlayer.stop();
+					mediaPlayer.release();
+					mediaPlayer = null;
+					//mediaController.setVisibility(View.GONE);
+					//mediaController.setAnchorView(mediaPreview);
+				}
+			}
+		});
+		
+		player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+		{
+			@Override
+			public void onPrepared(MediaPlayer mediaPlayer)
+			{
+				mediaPlayer.start();
+			}
+		});
+
+		try
+		{
+			player.setDataSource(currentSelectedFilePath);
+			player.setSurface(holder.getSurface());
+			player.setDisplay(holder);	
+			player.prepare();
+
+			// nextMediaPlayer.setOnPreparedListener(new
+			// MediaPlayer.OnPreparedListener() {
+			// @Override
+			// public void onPrepared(MediaPlayer mediaPlayer) {
+			// mediaPlayer.start();
+			// mediaPlayer.pause();
+			// }
+			// });
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	private static class CreateVideoUploadTaskParam
@@ -206,7 +268,7 @@ public class VideoPreviewActivity extends Activity
 		protected List<Cookie> cookies;
 		private Integer result;
 		private long totalsize;
-	
+
 		protected Integer doInBackground(CreateVideoUploadTaskParam... param)
 		{
 			server = new Server();
@@ -229,20 +291,23 @@ public class VideoPreviewActivity extends Activity
 					}
 				});
 
-				//File file = new File(Storage.getMediaFolder(true), param[0].video);
-				
+				// File file = new File(Storage.getMediaFolder(true),
+				// param[0].video);
+
 				String fileName = param[0].video;
 				String[] fileList = segmentService(fileName);
 				File file;
-				
-				for (String x : fileList) {
-					if (x != null) {
+
+				for (String x : fileList)
+				{
+					if (x != null)
+					{
 						file = new File(Storage.getMediaFolder(true), x);
 						entity.addPart("async-upload", new FileBody(file));
 						totalsize = entity.getContentLength();
 
 						httppost.setEntity(entity);
-						HttpResponse response = client.execute(httppost,httpContext);
+						HttpResponse response = client.execute(httppost, httpContext);
 
 						HttpEntity resEntity = response.getEntity();
 
@@ -326,57 +391,67 @@ public class VideoPreviewActivity extends Activity
 				dialog.show();
 			}
 		}
-		
-		private int getVideoFileDuration(String filename) {
+
+		private int getVideoFileDuration(String filename)
+		{
 			int duration = 0;
-			try {
+			try
+			{
 				MediaPlayer mp = MediaPlayer.create(mContext, Uri.parse(filename));
 				duration = mp.getDuration();
 				mp.reset();
 				mp.release();
 				mp = null;
 			}
-			catch (IllegalStateException e) {
-				 Log.e(TAG, e.getMessage().toString());
-			} 
-		    return duration;
+			catch (IllegalStateException e)
+			{
+				Log.e(TAG, e.getMessage().toString());
+			}
+			return duration;
 		}
-		
-		private String[] segmentService(String filename) {
-			
+
+		private String[] segmentService(String filename)
+		{
+
 			String filePath = new File(Storage.getMediaFolder(true), item).getPath();
-			
+
 			int duration = getVideoFileDuration(filePath);
-			
+
 			String[] segmentList = null;
-			
-			if (duration > 0) {
-				
-				double seconds = duration / 1000;	//convert milliseconds to seconds
+
+			if (duration > 0)
+			{
+
+				double seconds = duration / 1000; // convert milliseconds to
+													// seconds
 				int numOfSegments = (int) seconds / 3;
 				double remainTime = (duration % 3000) / 1000;
 				numOfSegments = (remainTime > 0) ? numOfSegments + 1 : numOfSegments;
-				
+
 				segmentList = new String[numOfSegments];
-				
+
 				double startIndex = 0.0000;
 				double endIndex = MAX_SEGMENT_LIMIT;
 				int index = 0;
-				 Log.e(TAG, "remainder : " + remainTime);
-				try {
-					for(int i=0; i<segmentList.length; i++) {
+				Log.e(TAG, "remainder : " + remainTime);
+				try
+				{
+					for (int i = 0; i < segmentList.length; i++)
+					{
 						index = i + 1;
-						if(i == segmentList.length-1 && remainTime > 0) {	// last segment and less than 3 seconds
-							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true),  startIndex, startIndex + remainTime, index);
-							break;	// exit for loop
+						if (i == segmentList.length - 1 && remainTime > 0)
+						{ // last segment and less than 3 seconds
+							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, startIndex + remainTime, index);
+							break; // exit for loop
 						}
-						
+
 						segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, endIndex, index);
 						startIndex = endIndex + 1.0000;
 						endIndex += MAX_SEGMENT_LIMIT;
 					}
 				}
-				catch (IOException e) {
+				catch (IOException e)
+				{
 					Log.e(TAG, e.getMessage().toString());
 				}
 			}
@@ -384,4 +459,3 @@ public class VideoPreviewActivity extends Activity
 		}
 	}
 }
-
