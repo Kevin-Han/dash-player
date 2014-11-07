@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
@@ -37,8 +38,12 @@ public class RecordActivity extends Activity {
 	private static final String FILE_PREFIX = "cs5248";
 
 	private Camera myCamera;
+	Camera.Parameters parameters;
+	
 	private SurfaceView surfaceView;
 	private MediaRecorder mediaRecorder;
+	private SurfaceHolder mHolder;
+	CamcorderProfile mProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
 	
 	boolean recording;
 	private TextView statusView;
@@ -65,15 +70,16 @@ public class RecordActivity extends Activity {
 			statusView.setText("Error getting Camera");
 		}
 
-		surfaceView = new CameraSurfaceView(this, myCamera);
+		surfaceView = new SurfaceView(this);
 		surfaceView.setKeepScreenOn(true);
+		mHolder = surfaceView.getHolder();
 		FrameLayout frameLayout = (FrameLayout) findViewById(R.id.videoView1);
 		frameLayout.addView(surfaceView);
 
 		startButton = (ImageButton)findViewById(R.id.imageButton1);
 		this.recordingTimerHandler = new Handler();
 	}
-
+/*
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -87,11 +93,13 @@ public class RecordActivity extends Activity {
 		}
 		releaseCamera();
 	}
-	
+	*/
+
 	@Override
 	protected void onResume(){
 		super.onResume();
 	}
+
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -119,8 +127,14 @@ public class RecordActivity extends Activity {
 	}
 		
 	private void stopRecording(){
-		if (recording) {
-			mediaRecorder.stop(); // stop the recording
+		if (recording) 
+		{
+			try {
+				mediaRecorder.stop(); // stop the recording
+			} catch(RuntimeException e) {
+				e.printStackTrace();
+			}
+			
 			releaseMediaRecorder(); // release the MediaRecorder object
 			
 			this.recordingTimerHandler.removeCallbacks(this.recordingTimerUpdater);
@@ -147,23 +161,48 @@ public class RecordActivity extends Activity {
 	}
 
 	private boolean prepareMediaRecorder() {
-		myCamera = getCameraInstance();
+	
+		if(myCamera == null)
+		{
+			try
+			{
+				myCamera = getCameraInstance();
+				//parameters = myCamera.getParameters();
+				//parameters.setPreviewSize(mProfile.videoFrameWidth,mProfile.videoFrameHeight);
+				//myCamera.setParameters(parameters);
+				myCamera.setPreviewDisplay(mHolder);
+				myCamera.startPreview();
+				myCamera.unlock();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
 		mediaRecorder = new MediaRecorder();
 
-		myCamera.unlock();
 		mediaRecorder.setCamera(myCamera);
 
 		mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 		mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-		//mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-		mediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
-		mediaRecorder.setPreviewDisplay(surfaceView.getHolder().getSurface());
 		
-		mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+		mediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
+		/*mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+		//encoder
 		mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
 		mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+		//video
+		mediaRecorder.setVideoEncodingBitRate(mProfile.videoBitRate);
+		mediaRecorder.setVideoFrameRate(mProfile.videoFrameRate);
+	    mediaRecorder.setVideoSize(mProfile.videoFrameWidth,mProfile.videoFrameHeight);
 		mediaRecorder.setVideoEncodingBitRate(3);
-		mediaRecorder.setVideoSize(720, 480);
+		//audio
+	    mediaRecorder.setAudioChannels(mProfile.audioChannels);	
+		mediaRecorder.setAudioSamplingRate(mProfile.audioSampleRate);
+		mediaRecorder.setAudioEncodingBitRate(mProfile.audioBitRate);*/
+		mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+		mediaRecorder.setPreviewDisplay(mHolder.getSurface());
 
 		try {
 			mediaRecorder.prepare();

@@ -5,6 +5,7 @@
   <string name="title_activity_preview">Preview</string>
   <string name="title_activity_server">List Server Videos</string>
   <string name="btnUpload">Upload</string>
+    <string name="btnPlay">Play</string>
   <string name="btnDelete">Delete</string>
   <string name="btnVideo">Record Video</string>
   <string name="btnListLocalVideo">List local videos</string>

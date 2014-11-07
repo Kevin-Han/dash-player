@@ -2,6 +2,7 @@ package nus.cs5248.group1.view;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -10,12 +11,14 @@ public class CameraSurfaceView extends SurfaceView implements
 
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
+	CamcorderProfile mProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+	Camera.Parameters parameters;
 
 	@SuppressWarnings("deprecation")
 	public CameraSurfaceView(Context context, Camera camera) {
 		super(context);
 		mCamera = camera;
-
+		
 		// Install a SurfaceHolder.Callback so we get notified when the
 		// underlying surface is created and destroyed.
 		mHolder = getHolder();
@@ -45,6 +48,9 @@ public class CameraSurfaceView extends SurfaceView implements
 
 		// start preview with new settings
 		try {
+			parameters = mCamera.getParameters();
+			parameters.setPreviewSize(mProfile.videoFrameWidth,mProfile.videoFrameHeight);
+			mCamera.setParameters(parameters);
 			mCamera.setPreviewDisplay(mHolder);
 			mCamera.startPreview();
 
@@ -58,6 +64,9 @@ public class CameraSurfaceView extends SurfaceView implements
 		// The Surface has been created, now tell the camera where to draw the
 		// preview.
 		try {
+			parameters = mCamera.getParameters();
+			parameters.setPreviewSize(mProfile.videoFrameWidth,mProfile.videoFrameHeight);
+			mCamera.setParameters(parameters);
 			mCamera.setPreviewDisplay(holder);
 			mCamera.startPreview();
 
