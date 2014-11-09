@@ -79,6 +79,13 @@ public class RecordActivity extends Activity {
 		startButton = (ImageButton)findViewById(R.id.imageButton1);
 		this.recordingTimerHandler = new Handler();
 	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		releaseCamera();
+		releaseMediaRecorder();
+	}
 /*
 	@Override
 	protected void onPause() {
@@ -230,6 +237,7 @@ public class RecordActivity extends Activity {
 	private void releaseCamera() {
 
 		if (myCamera != null) {
+			myCamera.stopPreview();
 			myCamera.release(); // release the camera for other applications
 			myCamera = null;
 		}
