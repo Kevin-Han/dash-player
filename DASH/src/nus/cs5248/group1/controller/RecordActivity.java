@@ -142,13 +142,11 @@ public class RecordActivity extends Activity {
 				e.printStackTrace();
 			}
 			
+			statusView.setText("Recording Stopped");
+			recording = false;
 			releaseMediaRecorder(); // release the MediaRecorder object
 			
 			this.recordingTimerHandler.removeCallbacks(this.recordingTimerUpdater);
-			
-			recording = false;
-
-			statusView.setText("Recording Stopped");
 			
 			Intent intent = new Intent(RecordActivity.this, MainActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -274,7 +272,6 @@ public class RecordActivity extends Activity {
 		updateRecordingLength(h, m, s);
 	}
 	
-	//UI THREAD ONLY
 	private void updateRecordingLength(final long h, final long m, final long s) {
 		if (h > 0) {
 			this.statusView.setText(String.format("Recording %02d:%02d:%02d", h, m, s));

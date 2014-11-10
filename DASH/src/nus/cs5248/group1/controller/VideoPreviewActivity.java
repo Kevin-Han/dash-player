@@ -425,7 +425,7 @@ public class VideoPreviewActivity extends Activity
 				double seconds = duration / 1000; // convert milliseconds to
 													// seconds
 				int numOfSegments = (int) seconds / 3;
-				double remainTime = (duration % 3000) / 1000;
+				double remainTime = (double)(duration % 3000) / (double) 1000;
 				numOfSegments = (remainTime > 0) ? numOfSegments + 1 : numOfSegments;
 
 				segmentList = new String[numOfSegments];
@@ -446,7 +446,7 @@ public class VideoPreviewActivity extends Activity
 						}
 
 						segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, endIndex, index);
-						startIndex = endIndex + 1.0000;
+						startIndex = endIndex;
 						endIndex += MAX_SEGMENT_LIMIT;
 					}
 				}
