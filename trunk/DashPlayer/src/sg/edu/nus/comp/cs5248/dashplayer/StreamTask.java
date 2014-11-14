@@ -49,22 +49,25 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 	private StreamTask.OnSegmentDownloaded callback;
 	private String title;
 	private Context context;
+	File projectDir;
 	
-	Context myContext;
-	
-	public static final String CACHE_FOLDER	= new File(Environment.getExternalStorageDirectory().getPath(), "dash_cache/").getPath();
+	//public static final String CACHE_FOLDER	= new File(Environment.getExternalStorageDirectory().getPath(), "dash_cache/").getPath();
+	public static String CACHE_FOLDER;
+
 	//Constructor
 	public StreamTask () {
 		super();
+		File x = new File(Environment.getExternalStorageDirectory().getPath(), "dash_cache/");
+		CACHE_FOLDER = x.getPath();
+		if(!x.exists())
+		{
+			x.mkdir();
+		}
 	}
 	
 	//The interface to be implemented at class that needs this callback:
 	public static interface OnSegmentDownloaded {
 		public void onVideoPlaySelected (VideoSegment segment);
-	}
-	
-	public void setContext (Context context) {
-		this.myContext = context;
 	}
 	
 	protected Boolean doInBackground (StreamVideoTaskParam...params) {
@@ -79,7 +82,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 		
 		for (VideoSegment segment : playlist) {
 			//For now set quality to 1.
-			int temp_quality = 320;
+			int temp_quality = 160;
 			String url = segment.getSegmentUrlForQuality(temp_quality);
 			Log.v(TAG, "Next URL: " + url);
 			
@@ -124,7 +127,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 		try {
 			Log.v(TAG, "getPlaylist is called.");
 			HttpClient client = new DefaultHttpClient();
-			URI getURL = new URI ("http://pilatus.d1.comp.nus.edu.sg/~a0092701/home/wp-content/segmentVideo/small.mpd");
+			URI getURL = new URI ("http://pilatus.d1.comp.nus.edu.sg/~a0092701/home/wp-content/video/small.mpd");
 			HttpResponse getResponse = client.execute(new HttpGet(getURL));
 			StatusLine statusLine = getResponse.getStatusLine();
 			HttpEntity responseEntity = getResponse.getEntity();
@@ -166,7 +169,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 			HttpResponse getResponse = client.execute(new HttpGet(url));
 			HttpEntity responseEntity = getResponse.getEntity();
 		    if(responseEntity != null){
-		    	cachefile = getCacheFile (myContext, url);
+		    	cachefile = getCacheFile (context, url);
 		    	fos = new FileOutputStream (cachefile);
 		    	fos.write(EntityUtils.toByteArray(responseEntity));
 				fos.close();

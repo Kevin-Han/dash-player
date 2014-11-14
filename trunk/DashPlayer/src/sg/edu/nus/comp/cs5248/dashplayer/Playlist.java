@@ -27,6 +27,7 @@ public class Playlist implements Iterable<VideoSegment> {
 	static final String BANDWIDTH = "bandwidth";
 	static final String INIT = "Initialization";
 	static final String SOURCE_URL = "sourceURL";
+	static final String MIMETYPE = "mimeType";
 	static final String SEGMENT_LIST = "SegmentList";
 	static final String DURATION = "duration";
 	static final String SEGMENT_URL = "SegmentURL";
@@ -102,13 +103,16 @@ public class Playlist implements Iterable<VideoSegment> {
 	        			Log.v(TAG, "BaseURL="+url);
 	        		}
 	        		else if (nameOfTag.equalsIgnoreCase(Playlist.REPRESENTATION)) {
-	        			String width = xpp.getAttributeValue(null, Playlist.WIDTH);
-	        			String height = xpp.getAttributeValue(null, Playlist.HEIGHT );
-	        			String bandwidth = xpp.getAttributeValue(null, Playlist.BANDWIDTH);
-	        			quality = Integer.parseInt(height);
-						this.qualities.add(new QualitySpec(quality, Integer.parseInt(bandwidth)));
-	        			Log.v(TAG, "Width=" + width + "Height=" + height + "Bandwidth=" + bandwidth);
-	        			Log.v(TAG, "Quality is" + quality + "Bandwidth is=" + Integer.parseInt(bandwidth));
+	        			if(xpp.getAttributeValue(null,Playlist.MIMETYPE).equalsIgnoreCase("video/mp4"))
+	        			{
+		        			String width = xpp.getAttributeValue(null, Playlist.WIDTH);
+		        			String height = xpp.getAttributeValue(null, Playlist.HEIGHT );
+		        			String bandwidth = xpp.getAttributeValue(null, Playlist.BANDWIDTH);
+		        			quality = Integer.parseInt(height);
+							this.qualities.add(new QualitySpec(quality, Integer.parseInt(bandwidth)));
+		        			Log.v(TAG, "Width=" + width + "Height=" + height + "Bandwidth=" + bandwidth);
+		        			Log.v(TAG, "Quality is" + quality + "Bandwidth is=" + Integer.parseInt(bandwidth));
+	        			}
 	        		}
 	        		else if (nameOfTag.equalsIgnoreCase(Playlist.INIT)) {
 						String segmentBaseURI = url;

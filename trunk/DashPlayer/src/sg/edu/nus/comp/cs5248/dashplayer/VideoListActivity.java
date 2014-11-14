@@ -95,9 +95,6 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 	    // Send data to Activity
 	    //listener.onVideoPlaySelected(segment);
 		
-		//StreamTask st= new StreamTask();
-		//st.setContext(getApplicationContext());
-		// st.execute("a");
 		StreamTask st= new StreamTask();
 		StreamVideoTaskParam stParam = new StreamVideoTaskParam("test", this, new StreamTask.OnSegmentDownloaded(){
 			
@@ -123,15 +120,6 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
     class RetrieveMPDTask extends AsyncTask<Void, Void, List<String>> {
     	List<String> list;
 
-    	@Override
-    	protected void onPreExecute()
-    	{
-    		dialog.setTitle("DashPlayer");
-    		dialog.setMessage("Retrieving DASH videos from server... ");
-    		dialog.setIcon(android.R.drawable.ic_dialog_alert);
-    		dialog.show();
-    	}
-    	
     	@Override
     	protected void onPostExecute(List<String> x)
     	{
