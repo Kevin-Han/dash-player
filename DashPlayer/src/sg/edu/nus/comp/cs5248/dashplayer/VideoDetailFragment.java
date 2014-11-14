@@ -1,9 +1,17 @@
 package sg.edu.nus.comp.cs5248.dashplayer;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import android.media.MediaMetadataRetriever;
+import com.coremedia.iso.IsoFile;
+import com.googlecode.mp4parser.authoring.Movie;
+import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
+import com.googlecode.mp4parser.authoring.container.mp4.MovieCreator;
+
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -73,10 +81,21 @@ public class VideoDetailFragment extends Fragment {
 							startNextPlayer();
 						}
 					});
-			        
-			        MediaMetadataRetriever metaType = new MediaMetadataRetriever();
-			        
+			        			
+			        //File tmpFile = File.createTempFile("dashBuffer", ".mp4");
 			        String st = segment.getCacheFilePath();
+			        //FileOutputStream outputStream = new FileOutputStream(tmpFile);
+			       // FileInputStream inputStream = new FileInputStream(st);
+			        
+					//int bufChar = 0;
+					//while ((bufChar = inputStream.read()) != -1) {
+					//	outputStream.write(bufChar);
+					//}
+					//outputStream.flush();
+					//outputStream.close();
+			        //Movie countVideo = new MovieCreator().build(st);
+			        //FileDescriptor out = (IsoFile) new DefaultMp4Builder().build(countVideo);
+
 			        nextMediaPlayer.setDataSource(st);
 			        nextMediaPlayer.setSurface(nextHolder.getSurface());
 			        nextMediaPlayer.prepare();
