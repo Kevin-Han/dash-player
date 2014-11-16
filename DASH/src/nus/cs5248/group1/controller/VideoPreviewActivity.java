@@ -360,23 +360,8 @@ public class VideoPreviewActivity extends Activity
 		{
 			super.onPostExecute(result);
 			pd.dismiss();
-			if (result == Result.OK)
-			{
-				dialog.setTitle(item);
-				dialog.setMessage("Video was successfully uploaded to server.");
-				dialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
-				{
-					public void onClick(DialogInterface dialog, int which)
-					{
-						Intent intent = new Intent(VideoPreviewActivity.this, MainActivity.class);
-						intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-						startActivity(intent);
-					}
-				});
-				dialog.setIcon(android.R.drawable.ic_dialog_alert);
-				dialog.show();
-			}
-			else
+			
+			if (result == null)
 			{
 				dialog.setTitle(item);
 				dialog.setMessage("Video was NOT uploaded to server due to errors.");
@@ -384,11 +369,44 @@ public class VideoPreviewActivity extends Activity
 				{
 					public void onClick(DialogInterface dialog, int which)
 					{
-						// do nothing
+						finish();
 					}
 				});
 				dialog.setIcon(android.R.drawable.ic_dialog_alert);
 				dialog.show();
+			}
+			else
+			{
+				if (result == Result.OK)
+				{
+					dialog.setTitle(item);
+					dialog.setMessage("Video was successfully uploaded to server.");
+					dialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int which)
+						{
+							Intent intent = new Intent(VideoPreviewActivity.this, MainActivity.class);
+							intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+							startActivity(intent);
+						}
+					});
+					dialog.setIcon(android.R.drawable.ic_dialog_alert);
+					dialog.show();
+				}
+				else
+				{
+					dialog.setTitle(item);
+					dialog.setMessage("Video was NOT uploaded to server due to errors.");
+					dialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int which)
+						{
+							// do nothing
+						}
+					});
+					dialog.setIcon(android.R.drawable.ic_dialog_alert);
+					dialog.show();
+				}			
 			}
 		}
 

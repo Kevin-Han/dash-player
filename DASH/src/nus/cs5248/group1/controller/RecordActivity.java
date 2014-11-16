@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import nus.cs5248.group1.R;
 import nus.cs5248.group1.model.Storage;
-import nus.cs5248.group1.view.CameraSurfaceView;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
