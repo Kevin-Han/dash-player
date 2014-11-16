@@ -96,7 +96,7 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 	    //listener.onVideoPlaySelected(segment);
 		
 		StreamTask st= new StreamTask();
-		StreamVideoTaskParam stParam = new StreamVideoTaskParam("test", this, new StreamTask.OnSegmentDownloaded(){
+		StreamVideoTaskParam stParam = new StreamVideoTaskParam(currentPosition, this, new StreamTask.OnSegmentDownloaded(){
 			
 			@Override
 			public void onVideoPlaySelected(VideoSegment segmentInfo) {
@@ -105,7 +105,7 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 			}
 		});
 		
-		new StreamTask().execute(stParam);
+		st.execute(stParam);
 	}
     
     @Override
