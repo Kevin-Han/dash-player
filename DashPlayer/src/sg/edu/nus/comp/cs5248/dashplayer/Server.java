@@ -66,6 +66,7 @@ public class Server
 	public static final String VIDEO_TITLE = "async-upload";
 	public static final String VIDEO_LIST = "wp-admin/upload.php";
 	public static final String BASE_URL = "http://pilatus.d1.comp.nus.edu.sg/~a0092701/home/";
+	public static final String SEGMENT_BASE = "wp-content/segmentVideo/";
 	
 	public static DefaultHttpClient client;
 	protected static String responseAsText;

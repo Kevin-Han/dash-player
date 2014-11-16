@@ -71,10 +71,11 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 	}
 	
 	protected Boolean doInBackground (StreamVideoTaskParam...params) {
-		Playlist playlist = this.getPlaylist();
 		this.callback = params[0].callback;
 		this.title = params[0].title;
 		this.context = params[0].context;
+		
+		Playlist playlist = this.getPlaylist();
 		
 		if (playlist == null) {
 			Log.e(TAG, "Fail to get playlist=");
@@ -82,7 +83,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 		
 		for (VideoSegment segment : playlist) {
 			//For now set quality to 1.
-			int temp_quality = 160;
+			int temp_quality = 480;
 			String url = segment.getSegmentUrlForQuality(temp_quality);
 			Log.v(TAG, "Next URL: " + url);
 			
@@ -127,7 +128,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 		try {
 			Log.v(TAG, "getPlaylist is called.");
 			HttpClient client = new DefaultHttpClient();
-			URI getURL = new URI ("http://pilatus.d1.comp.nus.edu.sg/~a0092701/home/wp-content/video/small.mpd");
+			URI getURL = new URI (Server.urlFor(Server.SEGMENT_BASE)+ this.title);
 			HttpResponse getResponse = client.execute(new HttpGet(getURL));
 			StatusLine statusLine = getResponse.getStatusLine();
 			HttpEntity responseEntity = getResponse.getEntity();

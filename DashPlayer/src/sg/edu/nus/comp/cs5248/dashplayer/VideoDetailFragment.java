@@ -120,10 +120,10 @@ public class VideoDetailFragment extends Fragment {
 					nextMediaPlayer.start();
 					nextMediaPlayer.pause();
 					
-					if (currentMediaPlayer == null) {
-						currentMediaPlayer.release();
+					//if (currentMediaPlayer == null) {
+						//currentMediaPlayer.release();
 						startNextPlayer();
-					}
+					//}
 				} catch (Exception e) {
 		    		e.printStackTrace();
 		    	}
