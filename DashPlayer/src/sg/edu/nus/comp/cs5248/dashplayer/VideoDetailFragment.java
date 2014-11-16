@@ -29,15 +29,12 @@ public class VideoDetailFragment extends Fragment {
 	protected static final String TAG = "VideoDetailFragment";
 	public static final String ARG_ITEM_ID = "item_id";
 	private RelativeLayout	mediaContainer;
-    private MediaPlayer 	currentMediaPlayer;
     private SurfaceHolder	currentHolder;
     private SurfaceView		currentSurface;
-    private MediaPlayer 	nextMediaPlayer;
-    private SurfaceHolder	nextHolder;
-    private SurfaceView		nextSurface;
     
     final Queue<VideoSegment> readySegments = new ArrayDeque<VideoSegment>();
     VideoSegment activeSegment = null;
+    final MediaPlayer mediaPlayer = new MediaPlayer();
 	
 	public VideoDetailFragment () {
 	}
@@ -47,7 +44,12 @@ public class VideoDetailFragment extends Fragment {
 	      Bundle savedInstanceState) {
 		
 		View rootView 		= inflater.inflate(R.layout.activity_video_detail, container, false);
-		this.mediaContainer	= (RelativeLayout) rootView.findViewById(R.id.media_container);
+		//this.mediaContainer	= (RelativeLayout) rootView.findViewById(R.id.media_container);
+		
+    	this.currentSurface = (SurfaceView) rootView.findViewById(R.id.videoView1);
+        this.currentHolder  = this.currentSurface.getHolder();
+        //mediaContainer.addView(currentSurface, 0);
+        
 		return rootView;
 	}
 	
@@ -63,110 +65,47 @@ public class VideoDetailFragment extends Fragment {
 	//private void prepareNextPlayer (final VideoSegment segment) {
 	public void prepareNextPlayer (final VideoSegment segment) {
 		Log.i(TAG, "Preparing player for: " + segment.getCacheFilePath());
-		
-    	this.nextSurface = new SurfaceView(this.getActivity());
-        this.nextHolder  = this.nextSurface.getHolder();
-        mediaContainer.addView(nextSurface, 0);
         
-        this.nextHolder.addCallback(new SurfaceHolder.Callback() {
-			
-			@Override
-			public void surfaceCreated(SurfaceHolder holder) {
-				try {
-					nextMediaPlayer = new MediaPlayer();
-			        nextMediaPlayer.setOnCompletionListener(new OnCompletionListener() {
-						@Override
-						public void onCompletion(MediaPlayer mediaPlayer) {
-							mediaPlayer.release();
-							startNextPlayer();
-						}
-					});
-			        			
-			        //File tmpFile = File.createTempFile("dashBuffer", ".mp4");
-			        String st = segment.getCacheFilePath();
-			        //FileOutputStream outputStream = new FileOutputStream(tmpFile);
-			       // FileInputStream inputStream = new FileInputStream(st);
-			        
-					//int bufChar = 0;
-					//while ((bufChar = inputStream.read()) != -1) {
-					//	outputStream.write(bufChar);
-					//}
-					//outputStream.flush();
-					//outputStream.close();
-			        //Movie countVideo = new MovieCreator().build(st);
-			        //FileDescriptor out = (IsoFile) new DefaultMp4Builder().build(countVideo);
+		String st = segment.getCacheFilePath();
 
-			        nextMediaPlayer.setDataSource(st);
-			        nextMediaPlayer.setSurface(nextHolder.getSurface());
-			        nextMediaPlayer.prepare();
-			        
-					//nextMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-					//    @Override
-					//    public void onPrepared(MediaPlayer mediaPlayer) {
-					//    	mediaPlayer.start();
-					//    	mediaPlayer.pause();
-					//    }
-					//});
-					
-			        int videoWidth = nextMediaPlayer.getVideoWidth();
-					int videoHeight = nextMediaPlayer.getVideoHeight();
-					
-					int surfaceWidth = nextHolder.getSurfaceFrame().width();
-					ViewGroup.LayoutParams params = nextSurface.getLayoutParams();
-					params.width = surfaceWidth;
-					params.height = (int) (((float) videoHeight / (float) videoWidth) * (float) surfaceWidth);
-					nextSurface.setLayoutParams(params);
-					
-					nextMediaPlayer.start();
-					nextMediaPlayer.pause();
-					
-					//if (currentMediaPlayer == null) {
-						//currentMediaPlayer.release();
-						startNextPlayer();
-					//}
-				} catch (Exception e) {
-		    		e.printStackTrace();
-		    	}
+		mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+		{
+			@Override
+			public void onCompletion(MediaPlayer mediaPlayer)
+			{
+				//MediaController mediaController = new MediaController(mContext);
+				if(mediaPlayer != null)
+				{
+					mediaPlayer.stop();
+					mediaPlayer.reset();
+					scheduleNext();
+				}
 			}
-			
-			@Override
-			public void surfaceDestroyed(SurfaceHolder holder) { }
-			
-			@Override
-			public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
 		});
-    }
-    
-    private void startNextPlayer() {
-    	Log.d(TAG, "Next player is starting...");
-    	
-    	SurfaceView previousSurface = this.currentSurface;
-    	
-    	this.currentMediaPlayer = this.nextMediaPlayer;
-    	this.currentHolder = this.nextHolder;
-    	this.currentSurface = this.nextSurface;
-    	
-    	if (this.currentMediaPlayer != null) {
-    		this.currentMediaPlayer.start();
-    	}
-    	
-    	if (previousSurface != null) {
-    		try {
-				Thread.sleep(250);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		
+		mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+		{
+			@Override
+			public void onPrepared(MediaPlayer mediaPlayer)
+			{
+				mediaPlayer.start();
 			}
-    		this.mediaContainer.removeView(previousSurface);
-    	}
-    	
-    	this.nextMediaPlayer = null;
-    	this.nextHolder = null;
-    	this.nextSurface = null;
-    	
-    	scheduleNext();
+		});
+
+		try
+		{
+			mediaPlayer.setDataSource(st);
+			mediaPlayer.setSurface(currentHolder.getSurface());
+			mediaPlayer.setDisplay(currentHolder);	
+			mediaPlayer.prepare();
+	
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
     }
-    
+        
 	private synchronized void scheduleNext() {
 		this.activeSegment = this.readySegments.poll();
 		//bufferContentChanged();
