@@ -113,6 +113,16 @@ public class Playlist implements Iterable<VideoSegment> {
 		        			Log.v(TAG, "Width=" + width + "Height=" + height + "Bandwidth=" + bandwidth);
 		        			Log.v(TAG, "Quality is" + quality + "Bandwidth is=" + Integer.parseInt(bandwidth));
 	        			}
+	        			if(xpp.getAttributeValue(null,Playlist.MIMETYPE).equalsIgnoreCase("audio/mp4"))
+	        			{
+		        			String width = xpp.getAttributeValue(null, Playlist.WIDTH);
+		        			String height = xpp.getAttributeValue(null, Playlist.HEIGHT );
+		        			String bandwidth = xpp.getAttributeValue(null, Playlist.BANDWIDTH);
+		        			quality = Integer.parseInt(height);
+							this.qualities.add(new QualitySpec(quality, Integer.parseInt(bandwidth)));
+		        			Log.v(TAG, "Width=" + width + "Height=" + height + "Bandwidth=" + bandwidth);
+		        			Log.v(TAG, "Quality is" + quality + "Bandwidth is=" + Integer.parseInt(bandwidth));
+	        			}
 	        		}
 	        		else if (nameOfTag.equalsIgnoreCase(Playlist.INIT)) {
 						String segmentBaseURI = url;
