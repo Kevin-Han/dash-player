@@ -214,7 +214,7 @@ public class RecordActivity extends Activity {
 	    mediaRecorder.setAudioChannels(mProfile.audioChannels);	
 		mediaRecorder.setAudioSamplingRate(mProfile.audioSampleRate);
 		mediaRecorder.setAudioEncodingBitRate(mProfile.audioBitRate);*/
-		mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+		mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_480P));
 		mediaRecorder.setPreviewDisplay(mHolder.getSurface());
 
 		try {
