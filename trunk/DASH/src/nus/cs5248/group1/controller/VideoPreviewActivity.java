@@ -280,7 +280,6 @@ public class VideoPreviewActivity extends Activity
 		Server server;
 		public DefaultHttpClient client;
 		protected String responseAsText;
-		protected List<Cookie> cookies;
 		private Integer result;
 		private long totalsize;
 
@@ -291,7 +290,6 @@ public class VideoPreviewActivity extends Activity
 			HttpContext httpContext = new BasicHttpContext();
 			
 			try {
-				cookies = client.getCookieStore().getCookies();
 				HttpPost httppost = new HttpPost(Server.urlFor(Server.CREATE_VIDEO));
 
 				CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, 
