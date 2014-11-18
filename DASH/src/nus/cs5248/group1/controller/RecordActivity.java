@@ -147,9 +147,18 @@ public class RecordActivity extends Activity {
 			
 			this.recordingTimerHandler.removeCallbacks(this.recordingTimerUpdater);
 			
-			Intent intent = new Intent(RecordActivity.this, MainActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
+			try
+			{
+				Thread.sleep(500);
+				Intent intent = new Intent(RecordActivity.this, MainActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+			}
+			catch (InterruptedException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
