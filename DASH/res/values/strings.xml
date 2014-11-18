@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="app_name">DASH</string>
+  <string name="app_name">DASH Recorder</string>
   <string name="title_activity_record">Record</string>
   <string name="title_activity_preview">Preview</string>
   <string name="title_activity_server">List Server Videos</string>
