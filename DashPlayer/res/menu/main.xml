@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="nus.cs5248.group1.MainActivity" >
+
+    <item
+        android:id="@+id/refresh" 
+        android:title="@string/Refresh" />
+
+</menu>

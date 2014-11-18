@@ -4,16 +4,16 @@
     <string name="app_name">DashPlayer</string>
     <string name="hello_world">Hello world!</string>
     
-    <string name="buffer_label">Buffer:</string>
+    <string name="buffer_label">Download Speed:</string>
     <string name="zero_kbps">0 KB/s</string>
         
-    <string name="zero">0</string>
-    <string name="segment"> Segments Left</string>
+    <string name="zero">0 </string>
+    <string name="segment">" Segments Left"</string>
     
     <string name="title_video_list">DashPlayer</string>
     <string name="title_video_detail">DashPlayer</string>
     
     <string name="press_to_update">Press to play video</string>
-    <string name="default_text">Default Text</string>
+    <string name="Refresh">Refresh</string>
 
 </resources>
