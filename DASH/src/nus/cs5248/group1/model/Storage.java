@@ -36,6 +36,7 @@ public class Storage {
 	}
 	
 	public static File getMediaFolder(final boolean createIfNotExist) {
+		
 		File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), APP_NAME);
 		
 		if (createIfNotExist) {
@@ -73,4 +74,37 @@ public class Storage {
 	public static boolean deleteFile(String strFile) {
 		return new File(strFile).delete();
 	}
+	
+	
+	public static File getTempFolder(final boolean createIfNotExist, String name) {
+		
+		File tempStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), name);
+		
+		if (createIfNotExist) {
+			if (!tempStorageDir.exists()) {
+				if (!tempStorageDir.mkdirs()) {
+					Log.d(TAG, "failed to create directory: " + tempStorageDir.getPath());
+					return null;
+				}
+			}
+		}
+		return tempStorageDir;
+	}
+	
+	public static boolean deleteDir(File dir) {
+
+		if (dir.isDirectory()) {
+	        String[] children = dir.list();
+	        for (int i=0; i<children.length; i++) {
+	            boolean success = deleteDir(new File(dir, children[i]));
+	            if (!success) {
+	                return false;
+	            }
+	        }
+	    }
+
+	    // The directory is now empty so delete it
+	    return dir.delete();
+	}
+	
 }
