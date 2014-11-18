@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package sg.edu.nus.comp.cs5248.dashplayer;
+package nus.cs5248.group1.dashplayer;
 
 public final class R {
     public static final class attr {

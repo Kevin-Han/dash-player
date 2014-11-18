@@ -3,7 +3,7 @@ package nus.cs5248.group1.dashplayer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import sg.edu.nus.comp.cs5248.dashplayer.R;
+import nus.cs5248.group1.dashplayer.R;
 
 import android.media.MediaPlayer;
 import android.os.Bundle;
