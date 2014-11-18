@@ -1,4 +1,4 @@
-package sg.edu.nus.comp.cs5248.dashplayer;
+package nus.cs5248.group1.dashplayer;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
