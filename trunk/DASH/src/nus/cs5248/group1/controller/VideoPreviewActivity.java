@@ -110,6 +110,13 @@ public class VideoPreviewActivity extends Activity
 	}
 	
 	@Override
+	public void onStop()
+	{
+	    unregisterReceiver(mConnReceiver);
+	    super.onStop();
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
 		switch (item.getItemId())

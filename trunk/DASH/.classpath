@@ -6,6 +6,6 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="lib" path="libs/httpmime-4.2.6.jar"/>
-	<classpathentry kind="lib" path="C:/Users/UIDV2859/workspace/DASH/libs/jsoup-1.8.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/UIDV2859/workspace/DashRecorder/libs/jsoup-1.8.1.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
