@@ -112,7 +112,10 @@ public class VideoPreviewActivity extends Activity
 	@Override
 	public void onStop()
 	{
-	    unregisterReceiver(mConnReceiver);
+		if(mConnReceiver!=null)
+		{
+			unregisterReceiver(mConnReceiver);
+		}
 	    super.onStop();
 	}
 	
