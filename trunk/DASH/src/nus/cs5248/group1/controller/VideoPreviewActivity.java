@@ -1,13 +1,9 @@
 package nus.cs5248.group1.controller;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -16,7 +12,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
@@ -29,40 +24,34 @@ import nus.cs5248.group1.model.ProgressListener;
 import nus.cs5248.group1.model.Result;
 import nus.cs5248.group1.model.SegmentVideoUtils;
 import nus.cs5248.group1.model.Server;
+import nus.cs5248.group1.model.SharedPreferencesCompat;
+import nus.cs5248.group1.model.SharedPreferencesUtils;
 import nus.cs5248.group1.model.Storage;
+import nus.cs5248.group1.model.Utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
-import android.database.Cursor;
-import android.media.AudioTrack;
-import android.media.MediaCodec;
-import android.media.MediaCodec.BufferInfo;
-import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaMetadataRetriever;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
 import android.net.ParseException;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,13 +64,19 @@ public class VideoPreviewActivity extends Activity
 	private static final String TAG = "VideoPreviewActivity.class";
 	private static final double MAX_SEGMENT_LIMIT = 3.0000;
 	private static final long PLAY_TIMEOUT = 3000;
+	private static final String PREFS_UPLOAD_ID = "_uploadId";
+	private static final String PREFS_ETAGS = "_etags";
 	private TextView itemPreview;
 	private SurfaceView mediaPreview;
 	private SurfaceHolder holder;
 	private Bundle extras;
 	private String item;
 	private String currentSelectedFilePath;
+	private boolean isConnected = true;
+	private String videoKey;
 	protected Context mContext;
+	private SharedPreferences prefs;
+	
 	Button btnUpload;
 	AlertDialog.Builder dialog;
 	Executor executor;
@@ -101,6 +96,9 @@ public class VideoPreviewActivity extends Activity
 		itemPreview.setText(item);
 		dialog = new AlertDialog.Builder(this);
 		mContext = getApplicationContext();
+		
+		registerReceiver(mConnReceiver, 
+		           new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 	}
 
 	@Override
@@ -110,7 +108,7 @@ public class VideoPreviewActivity extends Activity
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
@@ -136,39 +134,44 @@ public class VideoPreviewActivity extends Activity
 
 	public void upload(View v)
 	{
-		final CreateVideoUploadTask cv = new CreateVideoUploadTask();
+		if (!isConnected) {
+			 Toast.makeText(mContext, "Error uploading " + item + ". Please check your connection and try again.", Toast.LENGTH_LONG).show(); 
+		}
+		
+		else {
+			final CreateVideoUploadTask cv = new CreateVideoUploadTask();
 
-		pd = new ProgressDialog(this);
-		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		pd.setMessage("Uploading ...");
-		pd.setIndeterminate(true);
-		pd.setCancelable(false);
-		pd.setProgress(0);
-		pd.setMax(100);
-		pd.show();
+			pd = new ProgressDialog(this);
+			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			pd.setMessage("Uploading ...");
+			pd.setIndeterminate(true);
+			pd.setCancelable(false);
+			pd.setProgress(0);
+			pd.setMax(100);
+			pd.show();
 
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
+			new Thread(new Runnable()
 			{
-				try
+				@Override
+				public void run()
 				{
-					cv.execute(CreateVideoUploadTaskParam.create(item)).get();
+					try
+					{
+						cv.execute(CreateVideoUploadTaskParam.create(item)).get();
+					}
+					catch (InterruptedException e)
+					{
+						// TODO Auto-generated catch block
+						// e.printStackTrace();
+					}
+					catch (ExecutionException e)
+					{
+						// TODO Auto-generated catch block
+						// e.printStackTrace();
+					}
 				}
-				catch (InterruptedException e)
-				{
-					// TODO Auto-generated catch block
-					// e.printStackTrace();
-				}
-				catch (ExecutionException e)
-				{
-					// TODO Auto-generated catch block
-					// e.printStackTrace();
-				}
-			}
-		}).start();
-
+			}).start();
+		}
 	}
 
 	public void delete(View view)
@@ -247,7 +250,20 @@ public class VideoPreviewActivity extends Activity
 			e.printStackTrace();
 		}
 	}
+	
+	private BroadcastReceiver mConnReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
 
+        	if (Utils.isNetworkAvailable(context)) {
+        		isConnected = true;
+    		    Toast.makeText(context, "Network Available Do operations", Toast.LENGTH_LONG).show(); 
+        	}
+        	else isConnected = false;
+        }
+    };
+    
+    
 	private static class CreateVideoUploadTaskParam
 	{
 		String video;
@@ -260,8 +276,7 @@ public class VideoPreviewActivity extends Activity
 		}
 	}
 
-	private class CreateVideoUploadTask extends AsyncTask<CreateVideoUploadTaskParam, Integer, Integer>
-	{
+	private class CreateVideoUploadTask extends AsyncTask<CreateVideoUploadTaskParam, Integer, Integer> {
 		Server server;
 		public DefaultHttpClient client;
 		protected String responseAsText;
@@ -269,53 +284,99 @@ public class VideoPreviewActivity extends Activity
 		private Integer result;
 		private long totalsize;
 
-		protected Integer doInBackground(CreateVideoUploadTaskParam... param)
-		{
+		protected Integer doInBackground(CreateVideoUploadTaskParam... param) {
+	
 			server = new Server();
 			client = server.BuidlConnection();
 			HttpContext httpContext = new BasicHttpContext();
-
-			try
-			{
+			
+			try {
 				cookies = client.getCookieStore().getCookies();
 				HttpPost httppost = new HttpPost(Server.urlFor(Server.CREATE_VIDEO));
 
-				// MultipartEntity entity = new
-				// MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-				CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, new ProgressListener()
-				{
+				CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, 
+						new ProgressListener() {
 					@Override
 					public void transferred(long num)
 					{
 						publishProgress((int) ((num / (float) totalsize) * 100));
 					}
 				});
-
-				// File file = new File(Storage.getMediaFolder(true),
-				// param[0].video);
-
-				String fileName = param[0].video;
-				String[] fileList = segmentService(fileName);
+				
+				prefs = mContext.getSharedPreferences("preferences_video", Context.MODE_PRIVATE);
 				File file;
+				videoKey = item;
+				
+				List<String> segmentList = new ArrayList<String>();
+				int uploadId = getCachedUploadId();
+				
+				
+				if (uploadId > -1) {
+					// we can resume the download
+					 runOnUiThread(new Runnable() {
 
-				for (String x : fileList)
-				{
-					if (x != null)
-					{
-						file = new File(Storage.getMediaFolder(true), x);
+						 public void run() {
+
+						 Toast.makeText(getApplicationContext(), "Resuming upload for " + item, Toast.LENGTH_SHORT).show();
+
+					} });
+					
+					// get the cached etags
+					List<String> cachedSegments = SharedPreferencesUtils.getStringArrayPref(prefs, videoKey + PREFS_ETAGS);
+					if (cachedSegments == null ) Log.i(TAG, "Enty: ");
+					segmentList.addAll(cachedSegments);
+				
+				} else {
+					// initiate a new multi part upload
+					Log.i(TAG, "initiating new upload");
+					
+					String fileName = param[0].video;
+					List<String> newSegments = segmentService(fileName);
+					segmentList.addAll(newSegments);
+					
+					// store segment etag
+					SharedPreferencesUtils.setStringArrayPref(prefs, videoKey + PREFS_ETAGS, new ArrayList<String>(newSegments));
+					uploadId = 0;
+				}
+
+				for (int x = uploadId; x < segmentList.size(); x++) {
+					final int partno = x;
+					// store uploadID
+					Editor edit = prefs.edit().putInt(videoKey + PREFS_UPLOAD_ID, x);
+					SharedPreferencesCompat.apply(edit);
+					
+					if (isConnected) {
+						file = new File(Storage.getTempFolder(true, item.substring(0, item.length()-4)), segmentList.get(x));
 						entity.addPart("async-upload", new FileBody(file));
 						totalsize = entity.getContentLength();
+						
+						 runOnUiThread(new Runnable() {
 
+							 public void run() {
+
+							 Toast.makeText(getApplicationContext(), "Uploading for segment" + (partno+1), Toast.LENGTH_SHORT).show();
+
+						} });
+						
 						httppost.setEntity(entity);
 						HttpResponse response = client.execute(httppost, httpContext);
-
+						
+						
+						
+						
+						
 						HttpEntity resEntity = response.getEntity();
 
-						if (resEntity != null)
-						{
+						if (resEntity != null) {
 							this.responseAsText = EntityUtils.toString(resEntity);
 							result = Result.OK;
 						}
+					}
+					else {
+						pd.cancel();
+						pd.dismiss();
+						result = Result.UPLOAD_FAILED;
+						break;
 					}
 				}
 			}
@@ -363,6 +424,7 @@ public class VideoPreviewActivity extends Activity
 			
 			if (result == null)
 			{
+
 				dialog.setTitle(item);
 				dialog.setMessage("Video was NOT uploaded to server due to errors.");
 				dialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
@@ -379,6 +441,9 @@ public class VideoPreviewActivity extends Activity
 			{
 				if (result == Result.OK)
 				{
+
+					clearProgressCache();
+			    		Storage.deleteDir(Storage.getTempFolder(true, item.substring(0, item.length()-4)));
 					dialog.setTitle(item);
 					dialog.setMessage("Video was successfully uploaded to server.");
 					dialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
@@ -409,7 +474,19 @@ public class VideoPreviewActivity extends Activity
 				}			
 			}
 		}
-
+		
+		private void clearProgressCache() {
+			// clear the cached uploadId and etags
+	        Editor edit = prefs.edit();
+	        edit.remove(videoKey + PREFS_UPLOAD_ID);
+	        edit.remove(videoKey + PREFS_ETAGS);
+	    	SharedPreferencesCompat.apply(edit);
+		}
+		
+		private int getCachedUploadId() {
+			return prefs.getInt(videoKey + PREFS_UPLOAD_ID, -1);
+		}
+		
 		private int getVideoFileDuration(String filename)
 		{
 			int duration = 0;
@@ -428,52 +505,52 @@ public class VideoPreviewActivity extends Activity
 			return duration;
 		}
 
-		private String[] segmentService(String filename)
-		{
-
+		private List<String> segmentService(String filename) {
+			
 			String filePath = new File(Storage.getMediaFolder(true), item).getPath();
 
 			int duration = getVideoFileDuration(filePath);
+			
+			ArrayList<String> segmentFiles = new ArrayList<String>();
 
-			String[] segmentList = null;
+			//String[] segmentList = null;
 
-			if (duration > 0)
-			{
-
+			if (duration > 0) {
+				String result = null;
 				double seconds = duration / 1000; // convert milliseconds to
 													// seconds
 				int numOfSegments = (int) seconds / 3;
 				double remainTime = (double)(duration % 3000) / (double) 1000;
 				numOfSegments = (remainTime > 0) ? numOfSegments + 1 : numOfSegments;
 
-				segmentList = new String[numOfSegments];
+				//segmentList = new String[numOfSegments];
 
 				double startIndex = 0.0000;
 				double endIndex = MAX_SEGMENT_LIMIT;
 				int index = 0;
+				
 				Log.e(TAG, "remainder : " + remainTime);
-				try
-				{
-					for (int i = 0; i < segmentList.length; i++)
-					{
+				
+				try {
+					for (int i = 0; i < numOfSegments; i++) {
 						index = i + 1;
-						if (i == segmentList.length - 1 && remainTime > 0)
-						{ // last segment and less than 3 seconds
-							segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, startIndex + remainTime, index);
-							break; // exit for loop
+						if (i == numOfSegments - 1 && remainTime > 0) { 	// last segment and less than 3 seconds
+							result = SegmentVideoUtils.startTrim(filePath, Storage.getTempFolder(true, item.substring(0, item.length()-4)), startIndex, startIndex + remainTime, index);
 						}
-
-						segmentList[i] = SegmentVideoUtils.startTrim(filePath, Storage.getMediaFolder(true), startIndex, endIndex, index);
+						else {
+							result = SegmentVideoUtils.startTrim(filePath, Storage.getTempFolder(true, item.substring(0, item.length()-4)), startIndex, endIndex, index);
+						}
+						
+						if (result != null) segmentFiles.add(result);
 						startIndex = endIndex;
-						endIndex += MAX_SEGMENT_LIMIT;
+						endIndex += MAX_SEGMENT_LIMIT;			// 3 seconds interval
 					}
 				}
-				catch (IOException e)
-				{
+				catch (IOException e) {
 					Log.e(TAG, e.getMessage().toString());
 				}
 			}
-			return segmentList;
+			return segmentFiles;
 		}
 	}
 }
