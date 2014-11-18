@@ -10,11 +10,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -99,17 +95,35 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 		StreamVideoTaskParam stParam = new StreamVideoTaskParam(currentPosition, this, new StreamTask.OnSegmentDownloaded(){
 			
 			@Override
-			public void onVideoPlaySelected(VideoSegment segmentInfo) {
+			public void onVideoPlaySelected(VideoSegment segmentInfo,long bandwidthBytePerSec) {
 				Log.d("test", "Quality=" + segmentInfo.getCacheQuality() + "p, Cache: " + segmentInfo.getCacheFilePath());
 				vf.queueForPlayback(segmentInfo);
+				updateBandwidthText(humanReadableByteCount(bandwidthBytePerSec, true));
 			}
 		});
 		
 		st.execute(stParam);
 	}
-    
+	
+	private void updateBandwidthText(String text) {
+		VideoDetailFragment.bandwidthText.setText(text);
+	}
+	
+	public static String humanReadableByteCount(long bytes, boolean si) {
+	    long unit = si ? 1000 : 1024;
+	    if (bytes < unit) return ((bytes/1000) + " KB/s");
+	    if(bytes/unit > unit)
+	    {
+	    	return String.format("%.1f MB/s", bytes/unit/Math.pow(unit, 1));
+	    }
+	    else
+	    {
+	    	return String.format("%.1f KB/s", bytes / Math.pow(unit, 1));	    	
+	    }
+	}
+	
     @Override
-    public void  onVideoPlaySelected (VideoSegment segment) {
+    public void  onVideoPlaySelected (VideoSegment segment,long bandwidthBytePerSec) {
     	VideoDetailFragment fragment = (VideoDetailFragment) getSupportFragmentManager()
     		.findFragmentById(R.id.detailFragment);
         if (fragment != null && fragment.isInLayout()) {

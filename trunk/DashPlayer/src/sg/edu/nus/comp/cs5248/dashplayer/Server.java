@@ -1,16 +1,9 @@
 package sg.edu.nus.comp.cs5248.dashplayer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -18,7 +11,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -32,21 +24,9 @@ import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.CookieOrigin;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-
-import android.content.Intent;
 import android.net.ParseException;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.webkit.URLUtil;
+
 
 public class Server
 {
@@ -69,7 +49,7 @@ public class Server
 	public static final String SEGMENT_BASE = "wp-content/segmentVideo/";
 	
 	public static DefaultHttpClient client;
-	protected static String responseAsText;
+	protected String responseAsText;
 	protected static List<Cookie> cookies;
 	
 	public DefaultHttpClient BuidlConnection()

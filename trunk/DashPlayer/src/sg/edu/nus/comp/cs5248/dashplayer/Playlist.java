@@ -72,6 +72,17 @@ public class Playlist implements Iterable<VideoSegment> {
 	
 	}
 	
+	public int getQualityForBandwidth(long bandwidth) {
+		for (QualitySpec qs : qualities) {
+			if ((qs.requiredBandwidth / 8) <= bandwidth) {
+				return qs.verticalResolution;
+			}
+		}
+		
+		Log.i(TAG, "WARNING: no suitable quality for bandwidth=" + bandwidth);
+		return qualities.get(qualities.size() - 1).verticalResolution;
+	}
+	
 	public boolean initializeWithMPD (String mpd) {
 		try {
 			String url = null;

@@ -15,17 +15,21 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
 class StreamingProgressInfo {
-	public StreamingProgressInfo(VideoSegment segment) {
-		this.lastDownloadedSegment = segment;
-	}
-	
+	long bandwidthBytePerSec;
 	VideoSegment lastDownloadedSegment;
+	
+	public StreamingProgressInfo(long bandwidth,VideoSegment segment) {
+		this.lastDownloadedSegment = segment;
+		this.bandwidthBytePerSec = bandwidth;
+	}
 }
 
 class StreamVideoTaskParam {
@@ -50,6 +54,18 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 	private String title;
 	private Context context;
 	File projectDir;
+	private long estimatedBandwidth;
+	
+	//Download strategies
+	public static final int HALT = 0;
+	public static final int AS_FAST_AS_POSSIBLE = 1;
+	public static final int AT_LEAST_FOUR_SECONDS = 2;
+	public static int strategy = AS_FAST_AS_POSSIBLE ;
+	private static final int HIGH_BANDWIDTH 	= 387000; //3Mbps
+	private static final int MEDIUM_BANDWIDTH 	=  96000; //768kbps
+	private static final int LOW_BANDWIDTH 		=  25000; //200kbps
+	
+	public static Object strategyChangedEvent = new Object();
 	
 	//public static final String CACHE_FOLDER	= new File(Environment.getExternalStorageDirectory().getPath(), "dash_cache/").getPath();
 	public static String CACHE_FOLDER;
@@ -67,7 +83,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 	
 	//The interface to be implemented at class that needs this callback:
 	public static interface OnSegmentDownloaded {
-		public void onVideoPlaySelected (VideoSegment segment);
+		public void onVideoPlaySelected (VideoSegment segment,long bandwidthBytePerSec);
 	}
 	
 	protected Boolean doInBackground (StreamVideoTaskParam...params) {
@@ -78,13 +94,16 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 		Playlist playlist = this.getPlaylist();
 		
 		if (playlist == null) {
-			Log.e(TAG, "Fail to get playlist=");
+			Log.e(TAG, "Fail to get playlist");
+			return false;
 		}
 		
+		int quality = playlist.getQualityForBandwidth(getEstimatedBandwidthForCurrentConnection(this.context));
+		this.estimatedBandwidth = 0; //0 will be treated as uninitialized
 		for (VideoSegment segment : playlist) {
 			//For now set quality to 1.
-			int temp_quality = 480;
-			String url = segment.getSegmentUrlForQuality(temp_quality);
+			//int temp_quality = 480;
+			String url = segment.getSegmentUrlForQuality(quality);
 			Log.v(TAG, "Next URL: " + url);
 			
 			long startTime = System.currentTimeMillis();
@@ -92,23 +111,23 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 			long endTime = System.currentTimeMillis();
 			
 			if (cacheFilePath != null && !cacheFilePath.isEmpty()) {
-				segment.setCacheInfo(temp_quality, cacheFilePath);
+				segment.setCacheInfo(quality, cacheFilePath);
 				
 				long downloadSpeed = 1000 * (new File(cacheFilePath)).length() / (endTime - startTime);
 				Log.v(TAG, "Last download speed=" + downloadSpeed);
 				
 				//After downloading, pass the segment to StreamingProgressInfo.
-				publishProgress(new StreamingProgressInfo(segment));
-				//this.updateEstimatedBandwidth(downloadSpeed);
+				//publishProgress(new StreamingProgressInfo(segment));
+				this.updateEstimatedBandwidth(downloadSpeed);
 				
-				//int newQuality = playlist.getQualityForBandwidth(this.estimatedBandwidth);
-				//if (newQuality != quality) {
-					//Log.i(TAG, "Switching quality from " + quality + "p to " + newQuality + "p");
-					//quality = newQuality;
-				//}
+				int newQuality = playlist.getQualityForBandwidth(this.estimatedBandwidth);
+				if (newQuality != quality) {
+					Log.i(TAG, "Switching quality from " + quality + "p to " + newQuality + "p");
+					quality = newQuality;
+				}
 				
-				//publishProgress(new StreamingProgressInfo(this.estimatedBandwidth, segment));
-				//actOnDownloadStrategy(endTime - startTime);
+				publishProgress(new StreamingProgressInfo(this.estimatedBandwidth, segment));
+				actOnDownloadStrategy(endTime - startTime);
 			}
 			else {
 				Log.d(TAG, "Download failed, aborting");
@@ -118,7 +137,7 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 	}
 	
 	protected void onProgressUpdate(StreamingProgressInfo... info) {
-		callback.onVideoPlaySelected(info[0].lastDownloadedSegment);
+		callback.onVideoPlaySelected(info[0].lastDownloadedSegment,info[0].bandwidthBytePerSec);
     }
 	
 	//method getPlaylist
@@ -195,20 +214,75 @@ public class StreamTask extends AsyncTask <StreamVideoTaskParam, StreamingProgre
 	}
 	
 	public String getCacheFile(Context context, String url) {
-		/*File file = null;
-		try {
-			String fileName = extractFileName(url);
-			file = File.createTempFile(fileName, null, context.getCacheDir());
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-			Log.e (TAG, "Error when creating cache file: ",e);
-	    }
-		return file;*/
 		String fileName = extractFileName(url);
 		return new File(StreamTask.CACHE_FOLDER, fileName).getPath();
 	}
 
+	public static int getEstimatedBandwidthForCurrentConnection(Context context) {		
+		ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        int estimatedBandwidth = 0;
+        
+        if (info == null || !info.isConnected()) {
+        	Log.d(TAG, "No network connection");
+        	estimatedBandwidth = 0;
+        }
+        else if (info.getType() == ConnectivityManager.TYPE_WIFI) {
+        	WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        	int linkSpeedMbps = wm.getConnectionInfo().getLinkSpeed();
+        	
+        	Log.d(TAG, "Connection: WiFi (" + linkSpeedMbps + " Mb/s)");
+        	
+        	if (linkSpeedMbps >= 100) {
+        		estimatedBandwidth = HIGH_BANDWIDTH;
+        	}
+        	else if (linkSpeedMbps > 10) {
+        		estimatedBandwidth = MEDIUM_BANDWIDTH;
+        	}
+        	else {
+        		estimatedBandwidth = LOW_BANDWIDTH;
+        	}
+        }
+        
+        return estimatedBandwidth;
+	}
 	
+	private void updateEstimatedBandwidth(final long lastDownloadBandwidth) {
+		if (this.estimatedBandwidth == 0) {
+			this.estimatedBandwidth = lastDownloadBandwidth;
+		}
+		else {
+			this.estimatedBandwidth = (long) (0.5 * this.estimatedBandwidth + 0.5 * lastDownloadBandwidth);
+		}
+	}
+	
+	private void actOnDownloadStrategy(long lastDownloadTime) {
+		while (this.getStrategy() == StreamTask.HALT) {
+			try {
+				Log.d(TAG, "HALT. Waiting for strategy change event.");
+				synchronized (StreamTask.strategyChangedEvent) {
+					StreamTask.strategyChangedEvent.wait();
+				}
+			} catch (InterruptedException e) {
+				Log.e(TAG, "Interrupted while on HALT mode.");
+			}
+		}
+		
+		if (this.getStrategy() == StreamTask.AT_LEAST_FOUR_SECONDS) {
+			long sleepTime = 4000 - lastDownloadTime;
+			if (sleepTime > 0) {
+				try {
+					Log.d(TAG, "Sleeping for " + sleepTime + " ms before next download.");
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					Log.e(TAG, "Interrupted while on AT_LEAST_THREE_SECONDS mode.");
+				}
+			}
+		}
+	}
+	
+	
+	private synchronized int getStrategy() {
+		return StreamTask.strategy;
+	}
 }
-
