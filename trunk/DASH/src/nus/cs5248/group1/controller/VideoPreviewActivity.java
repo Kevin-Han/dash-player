@@ -547,7 +547,7 @@ public class VideoPreviewActivity extends Activity
 						}
 						
 						if (result != null) segmentFiles.add(result);
-						startIndex = endIndex;
+						startIndex = endIndex + 0.7500;
 						endIndex += MAX_SEGMENT_LIMIT;			// 3 seconds interval
 					}
 				}
