@@ -1,6 +1,6 @@
 package nus.cs5248.group1.dashplayer;
 
-import sg.edu.nus.comp.cs5248.dashplayer.R;
+import nus.cs5248.group1.dashplayer.R;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;

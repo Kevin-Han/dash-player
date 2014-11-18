@@ -9,14 +9,14 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:layout_weight="0.33"
-        class="sg.edu.nus.comp.cs5248.dashplayer.VideoListFragment" />
+        class="nus.cs5248.group1.dashplayer.VideoListFragment" />
 
     <fragment
         android:id="@+id/detailFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1.70"
-        class="sg.edu.nus.comp.cs5248.dashplayer.VideoPlayback" >
+        class="nus.cs5248.group1.dashplayer.VideoPlayback" >
 
         <!-- Preview: layout=@layout/details -->
     </fragment>

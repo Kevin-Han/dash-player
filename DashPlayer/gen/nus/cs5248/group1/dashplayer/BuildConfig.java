@@ -1,5 +1,5 @@
 /** Automatically generated file. DO NOT MODIFY */
-package sg.edu.nus.comp.cs5248.dashplayer;
+package nus.cs5248.group1.dashplayer;
 
 public final class BuildConfig {
     public final static boolean DEBUG = true;

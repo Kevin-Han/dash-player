@@ -12,7 +12,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
-import sg.edu.nus.comp.cs5248.dashplayer.R;
+import nus.cs5248.group1.dashplayer.R;
 import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.os.AsyncTask;
