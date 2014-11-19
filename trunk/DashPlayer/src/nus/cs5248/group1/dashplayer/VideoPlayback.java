@@ -65,7 +65,7 @@ public class VideoPlayback extends Fragment
 				// MediaController(mContext);
 				if (mediaPlayer != null)
 				{
-					mediaPlayer.stop();
+					//mediaPlayer.stop();
 					mediaPlayer.reset();
 					gotoNextSegment();
 				}
