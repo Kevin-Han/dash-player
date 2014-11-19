@@ -2,4 +2,6 @@
 <resources>
     <color name="black">#000000</color>
     <color name="white">#ffffff</color>
+    <color name="pressed_color">#FF888888</color>
+    <color name="default_color">#ffffff</color>
 </resources>

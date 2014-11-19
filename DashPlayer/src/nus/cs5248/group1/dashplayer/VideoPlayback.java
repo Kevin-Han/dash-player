@@ -101,11 +101,11 @@ public class VideoPlayback extends Fragment
 
 		int count = this.readySegments.size();
 
-		if (count > 16)
+		if (count > StreamingTask.segHaltLimit)
 		{
 			setStrategy(StreamingTask.HALT);
 		}
-		else if (count > 8)
+		else if (count > StreamingTask.segMidspeedLimit)
 		{
 			setStrategy(StreamingTask.MIDSPEED);
 		}

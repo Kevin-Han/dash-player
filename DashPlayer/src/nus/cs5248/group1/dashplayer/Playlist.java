@@ -61,17 +61,17 @@ public class Playlist implements Iterable<VideoSegment>
 
 	}
 
-	public int getQualityForBandwidth(long bandwidth)
+	public int getQualityForBandwidth(long currentBandwidth)
 	{
 		for (QualitySpec qs : qualities)
 		{
-			if ((qs.bandwidth / 8) <= bandwidth)
+			if ((qs.bandwidth ) <= currentBandwidth)
 			{
 				return qs.resolution;
 			}
 		}
 
-		Log.i(TAG, "No suitable quality for current bandwidth =" + bandwidth);
+		Log.i(TAG, "No suitable quality for current bandwidth =" + currentBandwidth);
 		return qualities.get(qualities.size() - 1).resolution;
 	}
 

@@ -20,6 +20,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 class StreamingProgressInfo
@@ -66,10 +67,13 @@ public class StreamingTask extends AsyncTask<StreamVideoTaskParam, StreamingProg
 	public static final int FASTEST = 1;
 	public static final int MIDSPEED = 2;
 
-	private static final int HIGH_BANDWIDTH = 387000; // 3Mbps
-	private static final int MEDIUM_BANDWIDTH = 96000; // 768kbps
-	private static final int LOW_BANDWIDTH = 25000; // 200kbps
-
+	private static final int HIGH_BANDWIDTH = 300000; // 2.4Mbps = 300 KB/S
+	private static final int MEDIUM_BANDWIDTH = 120000; // 960kbps = 120 KB/S
+	private static final int LOW_BANDWIDTH = 30000; // 240kbps = 30 KB/S
+	
+	public static final int segHaltLimit = 4; 
+	public static final int segMidspeedLimit = 2; 
+	
 	public static Object strategyChangedEvent = new Object();
 	public static int strategy = FASTEST;
 
@@ -124,7 +128,7 @@ public class StreamingTask extends AsyncTask<StreamVideoTaskParam, StreamingProg
 				segment.setCache(quality, cacheFilePath);
 
 				long downloadSpeed = 1000 * (new File(cacheFilePath)).length() / (endTime - startTime);
-				Log.v(TAG, "Last download speed=" + downloadSpeed);
+				Log.v(TAG, "Last download speed =" + downloadSpeed + " B/S");
 
 				// After downloading, pass the segment to StreamingProgressInfo.
 				// publishProgress(new StreamingProgressInfo(segment));
@@ -272,17 +276,47 @@ public class StreamingTask extends AsyncTask<StreamVideoTaskParam, StreamingProg
 
 			Log.d(TAG, "WiFi link speed is " + linkSpeedMbps + " Mb/s)");
 
-			if (linkSpeedMbps >= 100)
+			if (linkSpeedMbps/8 >= HIGH_BANDWIDTH)
 			{
 				estimatedBandwidth = HIGH_BANDWIDTH;
 			}
-			else if (linkSpeedMbps > 10)
+			else if (linkSpeedMbps/8 >= MEDIUM_BANDWIDTH)
 			{
 				estimatedBandwidth = MEDIUM_BANDWIDTH;
 			}
-			else
+			else if(linkSpeedMbps/8 >= LOW_BANDWIDTH)
 			{
 				estimatedBandwidth = LOW_BANDWIDTH;
+			}
+			else
+			{
+				estimatedBandwidth = 0;
+			}
+		}        
+		else if (info.getType() == ConnectivityManager.TYPE_MOBILE)
+		{
+			Log.d(TAG, "Connection type is Mobile (" + info.getSubtypeName() + ")");
+			switch (info.getSubtype())
+			{
+			case TelephonyManager.NETWORK_TYPE_HSDPA:
+			case TelephonyManager.NETWORK_TYPE_HSUPA:
+			case TelephonyManager.NETWORK_TYPE_EVDO_B:
+			case TelephonyManager.NETWORK_TYPE_HSPAP:
+			case TelephonyManager.NETWORK_TYPE_LTE:
+				estimatedBandwidth = HIGH_BANDWIDTH;
+				break;
+
+			case TelephonyManager.NETWORK_TYPE_EVDO_0:
+			case TelephonyManager.NETWORK_TYPE_EVDO_A:
+			case TelephonyManager.NETWORK_TYPE_HSPA:
+			case TelephonyManager.NETWORK_TYPE_UMTS:
+			case TelephonyManager.NETWORK_TYPE_EHRPD:
+				estimatedBandwidth = MEDIUM_BANDWIDTH;
+				break;
+
+			default:
+				estimatedBandwidth = LOW_BANDWIDTH;
+				break;
 			}
 		}
 
