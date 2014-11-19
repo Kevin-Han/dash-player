@@ -80,7 +80,7 @@ public class VideoPreviewActivity extends Activity
 	Button btnUpload;
 	AlertDialog.Builder dialog;
 	Executor executor;
-	ProgressDialog pd;
+	ProgressDialog mProgressDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -151,14 +151,15 @@ public class VideoPreviewActivity extends Activity
 		else {
 			final CreateVideoUploadTask cv = new CreateVideoUploadTask();
 
-			pd = new ProgressDialog(this);
-			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			pd.setMessage("Uploading ...");
-			pd.setIndeterminate(true);
-			pd.setCancelable(false);
-			pd.setProgress(0);
-			pd.setMax(100);
-			pd.show();
+			mProgressDialog = new ProgressDialog(this);
+			mProgressDialog.setTitle("Uploading " + item + "...");
+			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			mProgressDialog.setMessage("Uploading in progress ...");
+			mProgressDialog.setIndeterminate(false);
+			mProgressDialog.setCancelable(false);
+			mProgressDialog.setProgress(0);
+			mProgressDialog.setMax(100);
+			mProgressDialog.show();
 
 			new Thread(new Runnable()
 			{
@@ -245,15 +246,6 @@ public class VideoPreviewActivity extends Activity
 			player.setSurface(holder.getSurface());
 			player.setDisplay(holder);	
 			player.prepare();
-
-			// nextMediaPlayer.setOnPreparedListener(new
-			// MediaPlayer.OnPreparedListener() {
-			// @Override
-			// public void onPrepared(MediaPlayer mediaPlayer) {
-			// mediaPlayer.start();
-			// mediaPlayer.pause();
-			// }
-			// });
 		}
 		catch (Exception e)
 		{
@@ -290,6 +282,7 @@ public class VideoPreviewActivity extends Activity
 		Server server;
 		public DefaultHttpClient client;
 		protected String responseAsText;
+		protected List<Cookie> cookies;
 		private Integer result;
 		private long totalsize;
 
@@ -301,15 +294,6 @@ public class VideoPreviewActivity extends Activity
 			
 			try {
 				HttpPost httppost = new HttpPost(Server.urlFor(Server.CREATE_VIDEO));
-
-				CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, 
-						new ProgressListener() {
-					@Override
-					public void transferred(long num)
-					{
-						publishProgress((int) ((num / (float) totalsize) * 100));
-					}
-				});
 				
 				prefs = mContext.getSharedPreferences("preferences_video", Context.MODE_PRIVATE);
 				File file;
@@ -346,32 +330,37 @@ public class VideoPreviewActivity extends Activity
 					SharedPreferencesUtils.setStringArrayPref(prefs, videoKey + PREFS_ETAGS, new ArrayList<String>(newSegments));
 					uploadId = 0;
 				}
-
+				
 				for (int x = uploadId; x < segmentList.size(); x++) {
 					final int partno = x;
 					// store uploadID
 					Editor edit = prefs.edit().putInt(videoKey + PREFS_UPLOAD_ID, x);
 					SharedPreferencesCompat.apply(edit);
 					
+					final int totalSegment = segmentList.size();
+					final int segmentPercent = 100 / totalSegment;
+					
+					CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, 
+							new ProgressListener() {
+						@Override
+						public void transferred(long num)
+						{
+							
+							int segmentValue = (int) ((num / (float) totalsize) * 100);
+							int newValue = (partno * segmentPercent) + (segmentValue / totalSegment) ;
+							
+							publishProgress(newValue, partno+1, totalSegment);
+			
+						}
+					});
+
 					if (isConnected) {
 						file = new File(Storage.getTempFolder(true, item.substring(0, item.length()-4)), segmentList.get(x));
 						entity.addPart("async-upload", new FileBody(file));
 						totalsize = entity.getContentLength();
-						
-						 runOnUiThread(new Runnable() {
-
-							 public void run() {
-
-							 Toast.makeText(getApplicationContext(), "Uploading for segment" + (partno+1), Toast.LENGTH_SHORT).show();
-
-						} });
-						
+				
 						httppost.setEntity(entity);
 						HttpResponse response = client.execute(httppost, httpContext);
-						
-						
-						
-						
 						
 						HttpEntity resEntity = response.getEntity();
 
@@ -381,8 +370,8 @@ public class VideoPreviewActivity extends Activity
 						}
 					}
 					else {
-						pd.cancel();
-						pd.dismiss();
+						mProgressDialog.cancel();
+						mProgressDialog.dismiss();
 						result = Result.UPLOAD_FAILED;
 						break;
 					}
@@ -421,14 +410,25 @@ public class VideoPreviewActivity extends Activity
 		protected void onProgressUpdate(Integer... progress)
 		{
 			super.onProgressUpdate(progress);
-			pd.setProgress((int) (progress[0]));
+			mProgressDialog.setMessage(String.format("Uploading in progress (%d/%d) ...", progress[1].intValue(), progress[2].intValue()));
+			mProgressDialog.setProgress(progress[0].intValue());
 		}
 
 		@Override
 		protected void onPostExecute(Integer result)
 		{
 			super.onPostExecute(result);
-			pd.dismiss();
+			
+			if (mProgressDialog.getProgress() >= 100) {
+				 
+				// sleep 4 seconds, so that you can see the 100%
+				try {
+					Thread.sleep(4000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			mProgressDialog.dismiss();
 			
 			if (result == null)
 			{
@@ -451,7 +451,7 @@ public class VideoPreviewActivity extends Activity
 				{
 
 					clearProgressCache();
-			    		Storage.deleteDir(Storage.getTempFolder(true, item.substring(0, item.length()-4)));
+			    	Storage.deleteDir(Storage.getTempFolder(true, item.substring(0, item.length()-4)));
 					dialog.setTitle(item);
 					dialog.setMessage("Video was successfully uploaded to server.");
 					dialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
