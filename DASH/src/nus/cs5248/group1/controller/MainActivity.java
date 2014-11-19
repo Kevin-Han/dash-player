@@ -1,4 +1,4 @@
-package nus.cs5248.group1.activities;
+package nus.cs5248.group1.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nus.cs5248.group1.R;
-import nus.cs5248.group1.utils.Storage;
+import nus.cs5248.group1.model.Storage;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
