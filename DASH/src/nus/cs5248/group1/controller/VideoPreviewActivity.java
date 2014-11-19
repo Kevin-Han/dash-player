@@ -420,10 +420,9 @@ public class VideoPreviewActivity extends Activity
 			super.onPostExecute(result);
 			
 			if (mProgressDialog.getProgress() >= 100) {
-				 
-				// sleep 4 seconds, so that you can see the 100%
+				// sleep a while, so that you can see the 100%
 				try {
-					Thread.sleep(4000);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
