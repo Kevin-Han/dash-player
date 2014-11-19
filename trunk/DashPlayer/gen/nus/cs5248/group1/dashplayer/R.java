@@ -12,10 +12,13 @@ public final class R {
     }
     public static final class color {
         public static final int black=0x7f040000;
+        public static final int default_color=0x7f040003;
+        public static final int pressed_color=0x7f040002;
         public static final int white=0x7f040001;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
+        public static final int bg_key=0x7f020000;
+        public static final int ic_launcher=0x7f020001;
     }
     public static final class id {
         public static final int bandwidth_text=0x7f080005;

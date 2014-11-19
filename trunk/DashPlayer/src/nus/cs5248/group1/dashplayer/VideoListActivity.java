@@ -32,7 +32,7 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 {
 	public List<String> list;
 	ProgressDialog dialog;
-	private static int save = -1;
+	private static int selectedPosition = -1;
 	VideoPlayback vf;
 
 	@Override
@@ -61,7 +61,6 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 		}
 		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_2, android.R.id.text1, list);
 		listView.setAdapter(adapter);
-		listView.setSelection(0);
 
 		listView.setOnItemClickListener(new OnItemClickListener()
 		{
@@ -69,16 +68,22 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 			public void onItemClick(AdapterView<?> adapterView, View view, int position, long id)
 			{
 				listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-				listView.setItemChecked(position, true);
-				listView.getChildAt(position).setBackgroundColor(Color.GRAY);
-				if (save != -1 && save != position)
+				if((position >= 0) && (position <= adapterView.getChildCount()))
 				{
-					listView.getChildAt(save).setBackgroundColor(Color.TRANSPARENT);
+					try
+					{
+						listView.setItemChecked(position, true);
+						listView.setBackgroundColor(Color.TRANSPARENT);
+						listView.getChildAt(position).setBackgroundColor(Color.GRAY);
+
+						selectedPosition = position;
+					}
+					catch (Exception e)
+					{
+						e.printStackTrace();
+					}
+					adapter.notifyDataSetChanged();
 				}
-
-				save = position;
-
-				adapter.notifyDataSetChanged();
 			}
 		});
 
@@ -89,11 +94,11 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 			@Override
 			public void onClick(View v)
 			{
-				Playback((String) listView.getItemAtPosition(save));
+				Playback((String) listView.getItemAtPosition(selectedPosition));
 			}
 		});
 	}
-
+	  
 	public void Playback(String currentPosition)
 	{
 		// provide the segment to play here:
