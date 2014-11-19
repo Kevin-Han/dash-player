@@ -31,6 +31,7 @@ import nus.cs5248.group1.model.Utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -66,6 +67,8 @@ public class VideoPreviewActivity extends Activity
 	private static final long PLAY_TIMEOUT = 3000;
 	private static final String PREFS_UPLOAD_ID = "_uploadId";
 	private static final String PREFS_ETAGS = "_etags";
+	private static final int DIALOG_DOWNLOAD_PROGRESS = 101;
+	
 	private TextView itemPreview;
 	private SurfaceView mediaPreview;
 	private SurfaceHolder holder;
@@ -76,6 +79,7 @@ public class VideoPreviewActivity extends Activity
 	private String videoKey;
 	protected Context mContext;
 	private SharedPreferences prefs;
+	private int uploadId;
 	
 	Button btnUpload;
 	AlertDialog.Builder dialog;
@@ -110,16 +114,6 @@ public class VideoPreviewActivity extends Activity
 	}
 	
 	@Override
-	public void onStop()
-	{
-		if(mConnReceiver!=null)
-		{
-			unregisterReceiver(mConnReceiver);
-		}
-	    super.onStop();
-	}
-	
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
 		switch (item.getItemId())
@@ -140,6 +134,26 @@ public class VideoPreviewActivity extends Activity
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+	    switch (id) {
+	    case DIALOG_DOWNLOAD_PROGRESS:
+	        mProgressDialog = new ProgressDialog(this);
+	        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+	        mProgressDialog.setMessage("Uploading ...");
+	        mProgressDialog.setIndeterminate(true);
+	        mProgressDialog.setProgress(0);
+	        mProgressDialog.setMax(100);
+	        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+	        mProgressDialog.setCancelable(false);
+	        mProgressDialog.show();
+	        return mProgressDialog;
+	    default:
+	        return null;
+	    }
+
 	}
 
 	public void upload(View v)
@@ -285,7 +299,14 @@ public class VideoPreviewActivity extends Activity
 		protected List<Cookie> cookies;
 		private Integer result;
 		private long totalsize;
-
+/*
+		@Override
+		protected void onPreExecute() {
+		        //super.onPreExecute();
+		        // DIALOG_DOWNLOAD_PROGRESS is defined as 0 at start of class
+		        //showDialog(DIALOG_DOWNLOAD_PROGRESS);
+		}
+*/
 		protected Integer doInBackground(CreateVideoUploadTaskParam... param) {
 	
 			server = new Server();
@@ -293,6 +314,7 @@ public class VideoPreviewActivity extends Activity
 			HttpContext httpContext = new BasicHttpContext();
 			
 			try {
+				cookies = client.getCookieStore().getCookies();
 				HttpPost httppost = new HttpPost(Server.urlFor(Server.CREATE_VIDEO));
 				
 				prefs = mContext.getSharedPreferences("preferences_video", Context.MODE_PRIVATE);
@@ -300,7 +322,7 @@ public class VideoPreviewActivity extends Activity
 				videoKey = item;
 				
 				List<String> segmentList = new ArrayList<String>();
-				int uploadId = getCachedUploadId();
+				uploadId = getCachedUploadId();
 				
 				
 				if (uploadId > -1) {
@@ -333,7 +355,6 @@ public class VideoPreviewActivity extends Activity
 				
 				for (int x = uploadId; x < segmentList.size(); x++) {
 					final int partno = x;
-					// store uploadID
 					Editor edit = prefs.edit().putInt(videoKey + PREFS_UPLOAD_ID, x);
 					SharedPreferencesCompat.apply(edit);
 					
@@ -358,9 +379,21 @@ public class VideoPreviewActivity extends Activity
 						file = new File(Storage.getTempFolder(true, item.substring(0, item.length()-4)), segmentList.get(x));
 						entity.addPart("async-upload", new FileBody(file));
 						totalsize = entity.getContentLength();
-				
+						
+						 runOnUiThread(new Runnable() {
+
+							 public void run() {
+
+							 Toast.makeText(getApplicationContext(), "Uploading for segment" + (partno+1), Toast.LENGTH_SHORT).show();
+
+						} });
+						
 						httppost.setEntity(entity);
 						HttpResponse response = client.execute(httppost, httpContext);
+						
+						
+						
+						
 						
 						HttpEntity resEntity = response.getEntity();
 
@@ -420,13 +453,15 @@ public class VideoPreviewActivity extends Activity
 			super.onPostExecute(result);
 			
 			if (mProgressDialog.getProgress() >= 100) {
-				// sleep a while, so that you can see the 100%
+				 
+				// sleep 2 seconds, so that you can see the 100%
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(4000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
+
 			mProgressDialog.dismiss();
 			
 			if (result == null)
@@ -549,7 +584,7 @@ public class VideoPreviewActivity extends Activity
 						}
 						
 						if (result != null) segmentFiles.add(result);
-						startIndex = endIndex + 0.7500;
+						startIndex = endIndex+0.7500;
 						endIndex += MAX_SEGMENT_LIMIT;			// 3 seconds interval
 					}
 				}
