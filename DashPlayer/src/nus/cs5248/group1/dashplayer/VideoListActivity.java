@@ -72,8 +72,13 @@ public class VideoListActivity extends FragmentActivity implements VideoListFrag
 				{
 					try
 					{
+						if (selectedPosition != -1 && selectedPosition != position)
+						{
+							listView.getChildAt(selectedPosition).setBackgroundColor(Color.TRANSPARENT);
+						}
+
 						listView.setItemChecked(position, true);
-						listView.setBackgroundColor(Color.TRANSPARENT);
+
 						listView.getChildAt(position).setBackgroundColor(Color.GRAY);
 
 						selectedPosition = position;
